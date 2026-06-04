@@ -13,6 +13,8 @@ export type FABProps = {
   accessibilityHint?: string | undefined;
   testID?: string | undefined;
   style?: ViewStyle | undefined;
+  /** Override the default 44×44 size. */
+  size?: number | undefined;
 };
 
 /**

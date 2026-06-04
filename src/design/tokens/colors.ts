@@ -41,6 +41,9 @@ export const colors = {
   inkDot: '#6B4FE0', // filled
   inkDotEmpty: '#D8D2C2', // empty
 
+  // ── Overlays ───────────────────────────────────────────
+  scrim: 'rgba(0, 0, 0, 0.45)', // modal/sheet backdrop
+
   // ── Dark ───────────────────────────────────────────────
   darkBg: '#0F0F10',
   darkSurface: '#1A1A1C',

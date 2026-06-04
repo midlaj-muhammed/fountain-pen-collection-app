@@ -18,6 +18,8 @@ export type StackProps = {
   align?: 'flex-start' | 'center' | 'flex-end' | 'stretch';
   /** Justify content on the main axis. */
   justify?: 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around';
+  /** `flex: 1` shortcut. */
+  flex?: number | undefined;
 };
 
 export function Stack({
@@ -28,6 +30,7 @@ export function Stack({
   gap,
   align,
   justify,
+  flex,
 }: StackProps) {
   const computed: ViewStyle = {
     flexDirection: axis === 'horizontal' ? 'row' : 'column',
@@ -35,6 +38,7 @@ export function Stack({
   if (gap !== undefined) computed.gap = space[gap];
   if (align) computed.alignItems = align;
   if (justify) computed.justifyContent = justify;
+  if (flex !== undefined) computed.flex = flex;
 
   return (
     <View testID={testID} style={[computed, style]}>

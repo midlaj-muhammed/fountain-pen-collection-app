@@ -67,10 +67,11 @@ describe('colors token', () => {
   });
 
   describe('structural', () => {
-    it('exposes every key as a string starting with #', () => {
+    it('exposes every key as a valid color string (hex or rgba)', () => {
       for (const value of Object.values(colors)) {
         expect(typeof value).toBe('string');
-        expect(value).toMatch(/^#[0-9A-F]{6}$/i);
+        // Accept either #RRGGBB hex or rgba()/rgb() function notation
+        expect(value).toMatch(/^(#[0-9A-F]{6}|rgba?\([^)]+\))$/i);
       }
     });
   });
