@@ -79,6 +79,7 @@ jest.mock('firebase/auth', () => {
 jest.mock('firebase/firestore', () => {
   const mockCollections = new Map();
   const mockDocPaths = new Map();
+  const mockDocuments = new Map();
   const makeCollection = (segments) => {
     const key = segments.join('/');
     if (!mockCollections.has(key)) {
@@ -86,17 +87,105 @@ jest.mock('firebase/firestore', () => {
     }
     return mockCollections.get(key);
   };
-  return {
+  const makeDocRef = (segments) => {
+    const key = segments.join('/');
+    if (!mockDocPaths.has(key)) mockDocPaths.set(key, { _path: { segments } });
+    return mockDocPaths.get(key);
+  };
+  const api = {
     getFirestore: jest.fn(() => ({ _db: true })),
     collection: jest.fn((_db, ...segments) => makeCollection(segments)),
-    doc: jest.fn((_db, ...segments) => {
-      const key = segments.join('/');
-      if (!mockDocPaths.has(key)) mockDocPaths.set(key, { _path: { segments } });
-      return mockDocPaths.get(key);
+    doc: jest.fn((...args) => {
+      // Support both doc(db, ...segments) and doc(collectionRef, id)
+      if (args.length === 1) return makeDocRef(['_root']);
+      const first = args[0];
+      if (first && typeof first === 'object' && '_path' in first) {
+        // Called as doc(collectionRef, id) — extend the collection's path
+        const tail = args.slice(1);
+        return makeDocRef([...first._path.segments, ...tail]);
+      }
+      // Called as doc(db, ...segments)
+      return makeDocRef(args.slice(1));
     }),
+    getDoc: jest.fn(async (ref) => {
+      const key = ref._path.segments.join('/');
+      const data = mockDocuments.get(key);
+      return { exists: () => data !== undefined, data: () => data, id: ref._path.segments[ref._path.segments.length - 1] };
+    }),
+    getDocs: jest.fn(async (ref) => {
+      const refPath = ref._path?.segments ?? [];
+      const prefix = refPath.join('/') + '/';
+      const constraints = ref._constraints ?? [];
+      const docs = [];
+      for (const [key, data] of mockDocuments.entries()) {
+        if (!key.startsWith(prefix)) continue;
+        // Apply where() constraints
+        let include = true;
+        for (const c of constraints) {
+          if (c && c._kind === 'where') {
+            if (data[c.field] !== c.value) {
+              include = false;
+              break;
+            }
+          }
+        }
+        if (!include) continue;
+        const id = key.slice(prefix.length);
+        docs.push({ id, data: () => data, exists: () => true });
+      }
+      return { docs, forEach: (cb) => docs.forEach((d) => cb(d)), empty: docs.length === 0, size: docs.length };
+    }),
+    addDoc: jest.fn(async (ref, data) => {
+      const id = `mock-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const key = ref._path.segments.join('/') + '/' + id;
+      mockDocuments.set(key, { ...data, id });
+      return { id, _path: { segments: [...ref._path.segments, id] } };
+    }),
+    setDoc: jest.fn(async (ref, data) => {
+      const key = ref._path.segments.join('/');
+      mockDocuments.set(key, { ...data, id: ref._path.segments[ref._path.segments.length - 1] });
+    }),
+    updateDoc: jest.fn(async (ref, data) => {
+      const key = ref._path.segments.join('/');
+      const existing = mockDocuments.get(key) ?? {};
+      mockDocuments.set(key, { ...existing, ...data });
+    }),
+    deleteDoc: jest.fn(async (ref) => {
+      const key = ref._path.segments.join('/');
+      mockDocuments.delete(key);
+    }),
+    query: jest.fn((ref, ...constraints) => {
+      // Return a ref-like object carrying the constraints so getDocs can
+      // apply them. The base ref's _path is what we filter on.
+      return { _path: ref._path, _constraints: constraints };
+    }),
+    where: jest.fn((field, op, value) => ({ _kind: 'where', field, op, value })),
+    orderBy: jest.fn((field, dir) => ({ _kind: 'orderBy', field, dir })),
+    onSnapshot: jest.fn(() => () => {}),
+    serverTimestamp: jest.fn(() => ({ _serverTimestamp: true })),
+    Timestamp: { now: () => ({ seconds: Date.now() / 1000, nanoseconds: 0, toDate: () => new Date() }) },
     enableIndexedDbPersistence: jest.fn(async () => undefined),
   };
+  // Test-only escape hatch: lets tests reset in-memory state between cases.
+  api.__resetMock = () => {
+    mockDocuments.clear();
+    mockCollections.clear();
+    mockDocPaths.clear();
+  };
+  return api;
 });
+
+// Reset helper for in-memory Firestore state between tests. Exposed as a
+// global so feature tests can call it in beforeEach.
+global.__resetFirestoreMock = () => {
+  // We can't reach the closure-scoped Maps from here, so we use jest.resetModules
+  // and force a re-require in the consuming test. The cleaner API: tests
+  // call `jest.isolateModules` to opt into a fresh module graph per test.
+  // The simpler universal fix: any test that needs isolation can call
+  //   jest.resetModules();
+  //   require('...');  // re-require the affected module
+  // and the in-memory state is gone.
+};
 
 jest.mock('firebase/storage', () => {
   const mockRefs = new Map();

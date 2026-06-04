@@ -5,12 +5,13 @@ import { StyleSheet, View } from 'react-native';
 import { Text } from '@/design/primitives/Text';
 import { colors } from '@/design/tokens/colors';
 import { space } from '@/design/tokens/spacing';
+import { PenStack } from '@/features/pens/navigation/PenStack';
 
 import type { MainTabParamList } from './types';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-// Placeholder screens — replaced by real feature screens in P3.
+// Placeholder screens — replaced by real feature screens as P3 ships.
 function Placeholder({ title }: { title: string }) {
   return (
     <View style={styles.placeholder}>
@@ -54,9 +55,7 @@ export function MainTabs() {
         },
       })}
     >
-      <Tab.Screen name="Pens">
-        {() => <Placeholder title="Pens" />}
-      </Tab.Screen>
+      <Tab.Screen name="Pens" component={PenStack} />
       <Tab.Screen name="Inks">
         {() => <Placeholder title="Inks" />}
       </Tab.Screen>
