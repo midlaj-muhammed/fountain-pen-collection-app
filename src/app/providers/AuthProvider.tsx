@@ -1,32 +1,38 @@
-import { createContext, useContext, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
-/**
- * Placeholder AuthProvider for P0. The real implementation lives in P2 and
- * wires Firebase Auth + a Zustand store. For P0 we just expose a no-op
- * `useAuth` so consumers can be written against the eventual interface.
- */
+import { type AuthUser, onAuthChanged, signOut as fbSignOut } from '@/lib/firebase';
 
-type AuthUser = {
-  uid: string;
-  email: string | null;
-  displayName: string | null;
-  photoURL: string | null;
-};
+type AuthStatus = 'loading' | 'signedIn' | 'signedOut';
 
 type AuthContextValue = {
   user: AuthUser | null;
-  status: 'loading' | 'signedIn' | 'signedOut';
+  status: AuthStatus;
   signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // P0 stub: always signed out. P2 will replace this with onAuthStateChanged.
+  const [user, setUser] = useState<AuthUser | null>(null);
+  // Optimistic default; flips to 'signedOut' or 'signedIn' once onAuthChanged
+  // fires for the first time. We track this explicitly so callers can render
+  // a splash / loading state while the first event is in flight.
+  const [firstEvent, setFirstEvent] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = onAuthChanged((u) => {
+      setUser(u);
+      setFirstEvent(true);
+    });
+    return unsubscribe;
+  }, []);
+
+  const status: AuthStatus = !firstEvent ? 'loading' : user ? 'signedIn' : 'signedOut';
+
   const value: AuthContextValue = {
-    user: null,
-    status: 'signedOut',
-    signOut: async () => {},
+    user,
+    status,
+    signOut: fbSignOut,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
