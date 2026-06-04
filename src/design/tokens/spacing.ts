@@ -13,3 +13,5 @@ export const space = {
   xxl: 32,
   xxxl: 48,
 } as const;
+
+export type SpaceToken = keyof typeof space;

@@ -50,6 +50,16 @@ module.exports = {
     ],
     'import/no-unresolved': 'off', // handled by TS
   },
+  overrides: [
+    {
+      files: ['**/*.test.tsx', '**/*.test.ts'],
+      rules: {
+        // Test fixtures use raw text inside <View> for setup convenience;
+        // shipping code never does, so disable for test files only.
+        'react-native/no-raw-text': 'off',
+      },
+    },
+  ],
   ignorePatterns: [
     'node_modules/',
     'android/',
