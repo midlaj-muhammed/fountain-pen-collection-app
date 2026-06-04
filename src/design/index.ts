@@ -40,3 +40,4 @@ export { Modal, type ModalProps } from './components/Modal';
 export { OfflineBanner, type OfflineBannerProps } from './components/OfflineBanner';
 export { PenListItem, type PenListItemProps, type PenListItemData } from './components/PenListItem';
 export { InkListItem, type InkListItemProps, type InkListItemData } from './components/InkListItem';
+export { TextField, type TextFieldProps } from './components/TextField';
