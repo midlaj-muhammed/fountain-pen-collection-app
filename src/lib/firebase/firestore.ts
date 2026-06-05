@@ -2,6 +2,7 @@ import {
   type CollectionReference,
   type Firestore,
   collection,
+  enableIndexedDbPersistence,
   getFirestore,
 } from 'firebase/firestore';
 
@@ -36,13 +37,39 @@ export function userCollection<Doc = unknown>(
   return collection(getDb(), 'users', uid, subcollection) as CollectionReference<Doc>;
 }
 
+let _persistenceEnabled = false;
+let _persistencePromise: Promise<void> | null = null;
+
 /**
- * Enables Firestore offline persistence. The real implementation in P3.8
- * (Slice S8) will wrap this with cache size + multi-tab-disabled settings.
- *
- * For now this is a no-op so callers can wire the call site today.
+ * Enables Firestore offline persistence (IndexedDB on web, native on
+ * RN). Idempotent: safe to call multiple times. Subsequent calls
+ * return the same in-flight promise. Logs a warning (rather than
+ * throwing) if the SDK rejects — common cases are "already
+ * initialized in another tab" or "running in SSR".
  */
-export function enableOfflinePersistence(): void {
-  // P3.8 will fill this in. Keeping the function exported so call sites
-  // don't have to change.
+export function enableOfflinePersistence(): Promise<void> {
+  if (_persistenceEnabled) return Promise.resolve();
+  if (_persistencePromise) return _persistencePromise;
+  _persistencePromise = enableIndexedDbPersistence(getDb()).then(
+    () => {
+      _persistenceEnabled = true;
+    },
+    (err: unknown) => {
+      // Common: "failed-precondition: already enabled in another tab".
+      // We treat that as success for the local tab so callers can
+      // still rely on the persistence being on.
+      if (err && typeof err === 'object' && 'code' in err) {
+        const code = (err as { code?: string }).code;
+        if (code === 'failed-precondition' || code === 'unimplemented') {
+          _persistenceEnabled = true;
+          return;
+        }
+      }
+      // eslint-disable-next-line no-console
+      console.warn('[firestore] enableIndexedDbPersistence failed:', err);
+      _persistencePromise = null;
+    },
+  );
+  return _persistencePromise;
 }
+
