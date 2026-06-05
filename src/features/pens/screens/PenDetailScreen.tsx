@@ -19,6 +19,7 @@ export type PenDetailScreenProps = {
   onEdit: () => void;
   onDelete: () => void;
   onBack: () => void;
+  onOpenNibs?: () => void;
   testID?: string;
 };
 
@@ -27,9 +28,12 @@ export function PenDetailScreen({
   penId,
   onEdit,
   onDelete,
+  onOpenNibs,
   onBack,
   testID,
 }: PenDetailScreenProps) {
+  // onOpenNibs is invoked by the "Nib history" button below.
+  void onOpenNibs;
   const { data: pen, isLoading } = usePen(uid, penId);
   const deletePenMutation = useDeletePen(uid);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -105,6 +109,16 @@ export function PenDetailScreen({
                 </ButtonS>
               </View>
             </Stack>
+            {onOpenNibs ? (
+              <ButtonS
+                onPress={onOpenNibs}
+                variant="secondary"
+                fullWidth
+                testID="pd-nibs"
+              >
+                Nib history
+              </ButtonS>
+            ) : null}
             <ButtonS
               onPress={() => setConfirmOpen(true)}
               variant="ghost"

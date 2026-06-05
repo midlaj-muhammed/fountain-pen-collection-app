@@ -6,6 +6,7 @@ import { createInk, updateInk, type InkInput } from '@/features/inks/api/inks';
 import { InkForm } from '@/features/inks/components/InkForm';
 import { InkDetailScreen } from '@/features/inks/screens/InkDetailScreen';
 import { InkListScreen } from '@/features/inks/screens/InkListScreen';
+import { NibStack } from '@/features/nibs/navigation/NibStack';
 import { createPen, updatePen, type PenInput } from '@/features/pens/api/pens';
 import { PenForm } from '@/features/pens/components/PenForm';
 import { PenDetailScreen } from '@/features/pens/screens/PenDetailScreen';
@@ -93,6 +94,9 @@ export function HomeStack() {
             onEdit={() => navigation.navigate('PenForm', { penId: route.params.penId })}
             onDelete={() => navigation.goBack()}
             onBack={() => navigation.goBack()}
+            onOpenNibs={() =>
+              navigation.navigate('NibHistory', { penId: route.params.penId })
+            }
           />
         )}
       </Stack.Screen>
@@ -214,6 +218,9 @@ export function HomeStack() {
             }}
           />
         )}
+      </Stack.Screen>
+      <Stack.Screen name="NibHistory">
+        {() => <NibStack />}
       </Stack.Screen>
     </Stack.Navigator>
   );

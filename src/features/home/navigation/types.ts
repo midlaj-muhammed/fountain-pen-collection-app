@@ -2,7 +2,8 @@
  * HomeStack lives inside the Pens tab. Initial route is Home; "See all
  * pens" / "See all inks" navigates to PenList / InkList. Sessions have
  * their own list/detail/form routes; the QuickLog 1-tap goes straight
- * to SessionDetail with the new session id.
+ * to SessionDetail with the new session id. Nib swaps live behind the
+ * "Nibs" button on PenDetail.
  */
 export type HomeStackParamList = {
   Home: undefined;
@@ -15,4 +16,5 @@ export type HomeStackParamList = {
   PenForm: { penId: string | undefined };
   InkForm: { inkId: string | undefined };
   SessionForm: { sessionId: string | undefined };
+  NibHistory: { penId: string };
 };
