@@ -5,6 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { Text } from '@/design/primitives/Text';
 import { colors } from '@/design/tokens/colors';
 import { space } from '@/design/tokens/spacing';
+import { InkStack } from '@/features/inks/navigation/InkStack';
 import { PenStack } from '@/features/pens/navigation/PenStack';
 
 import type { MainTabParamList } from './types';
@@ -56,9 +57,7 @@ export function MainTabs() {
       })}
     >
       <Tab.Screen name="Pens" component={PenStack} />
-      <Tab.Screen name="Inks">
-        {() => <Placeholder title="Inks" />}
-      </Tab.Screen>
+      <Tab.Screen name="Inks" component={InkStack} />
       <Tab.Screen name="Calendar">
         {() => <Placeholder title="Calendar" />}
       </Tab.Screen>
