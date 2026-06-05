@@ -5,8 +5,8 @@
  */
 import { Timestamp } from 'firebase/firestore';
 
-import { createPen, deletePen, listPens, upsertPen } from '@/features/pens/api/pens';
 import { listInks, upsertInk } from '@/features/inks/api/inks';
+import { createPen, deletePen, listPens, upsertPen } from '@/features/pens/api/pens';
 
 import { bumpCountersOnCreate, bumpCountersOnDelete } from './sessionsCounters';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require
