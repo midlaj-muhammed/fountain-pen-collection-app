@@ -34,6 +34,25 @@ jest.mock('@react-native-community/netinfo', () => ({
 // surface we use with minimal in-memory implementations. Jest requires mock
 // factory variables to be prefixed `mock*`.
 
+// `@react-native-google-signin/google-signin` native module. We mock
+// it so auth.ts can call GoogleSignin.signIn() without a real
+// device. Tests that exercise signInWithGoogle inspect the
+// returned idToken via the mock.
+jest.mock('@react-native-google-signin/google-signin', () => ({
+  GoogleSignin: {
+    signIn: jest.fn(async () => ({
+      type: 'success',
+      data: {
+        idToken: 'fake-google-id-token',
+        user: { id: 'google-uid', email: 'alice@example.com', name: 'Alice', photo: null },
+      },
+    })),
+    signOut: jest.fn(async () => null),
+    configure: jest.fn(),
+  },
+  statusCodes: { SIGN_IN_CANCELLED: 'cancelled', IN_PROGRESS: 'in_progress' },
+}));
+
 const mockApps = new Map();
 
 jest.mock('firebase/app', () => {
@@ -70,10 +89,12 @@ jest.mock('firebase/auth', () => {
     connectAuthEmulator: jest.fn(),
     onAuthStateChanged,
     signInWithEmailAndPassword: jest.fn(async () => ({ user: mockAuthState.currentUser })),
-    signInWithPopup: jest.fn(async () => ({ user: mockAuthState.currentUser })),
+    signInWithCredential: jest.fn(async () => ({ user: mockAuthState.currentUser })),
     createUserWithEmailAndPassword: jest.fn(async () => ({ user: mockAuthState.currentUser })),
     signOut: jest.fn(async () => undefined),
-    GoogleAuthProvider: jest.fn().mockImplementation(() => ({})),
+    GoogleAuthProvider: Object.assign(jest.fn().mockImplementation(() => ({})), {
+      credential: jest.fn((idToken: string) => ({ _idToken: idToken, providerId: 'google.com' })),
+    }),
   };
 });
 
