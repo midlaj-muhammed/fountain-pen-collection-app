@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { inkKeys } from '@/features/inks/api/queries';
+import { penKeys } from '@/features/pens/api/queries';
 import type { Session } from '@/types/domain';
 
 import {
@@ -10,6 +12,7 @@ import {
   type SessionInput,
   updateSession,
 } from './sessions';
+import { bumpCountersOnCreate, bumpCountersOnDelete } from './sessionsCounters';
 
 export const sessionKeys = {
   all: ['sessions'] as const,
@@ -36,9 +39,25 @@ export function useSession(uid: string | null, id: string | null) {
 export function useCreateSession(uid: string | null) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (input: SessionInput) => createSession(uid!, input),
+    mutationFn: async (input: SessionInput) => {
+      const id = await createSession(uid!, input);
+      // Mirror the Cloud Function `onSessionWrite` side-effect so the UI
+      // counter is correct immediately. If the side-effect fails the
+      // session is still created; the Cloud Function is the source of
+      // truth and will reconcile on the next write.
+      try {
+        await bumpCountersOnCreate(uid!, input);
+      } catch {
+        // intentionally swallow; counters will be repaired server-side
+      }
+      return id;
+    },
     onSuccess: () => {
-      if (uid) qc.invalidateQueries({ queryKey: sessionKeys.list(uid) });
+      if (uid) {
+        qc.invalidateQueries({ queryKey: sessionKeys.list(uid) });
+        qc.invalidateQueries({ queryKey: inkKeys.list(uid) });
+        qc.invalidateQueries({ queryKey: penKeys.list(uid) });
+      }
     },
   });
 }
@@ -60,9 +79,23 @@ export function useUpdateSession(uid: string | null) {
 export function useDeleteSession(uid: string | null) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => deleteSession(uid!, id),
+    mutationFn: async (id: string) => {
+      const existing = await getSession(uid!, id);
+      if (existing) {
+        try {
+          await bumpCountersOnDelete(uid!, existing);
+        } catch {
+          // intentionally swallow
+        }
+      }
+      await deleteSession(uid!, id);
+    },
     onSuccess: () => {
-      if (uid) qc.invalidateQueries({ queryKey: sessionKeys.list(uid) });
+      if (uid) {
+        qc.invalidateQueries({ queryKey: sessionKeys.list(uid) });
+        qc.invalidateQueries({ queryKey: inkKeys.list(uid) });
+        qc.invalidateQueries({ queryKey: penKeys.list(uid) });
+      }
     },
   });
 }
