@@ -7,6 +7,7 @@ import { colors } from '@/design/tokens/colors';
 import { space } from '@/design/tokens/spacing';
 import { HomeStack } from '@/features/home/navigation/HomeStack';
 import { InkStack } from '@/features/inks/navigation/InkStack';
+import { SettingsStack } from '@/features/settings/navigation/SettingsStack';
 
 import type { MainTabParamList } from './types';
 
@@ -64,9 +65,7 @@ export function MainTabs() {
       <Tab.Screen name="Wishlist">
         {() => <Placeholder title="Wishlist" />}
       </Tab.Screen>
-      <Tab.Screen name="Settings">
-        {() => <Placeholder title="Settings" />}
-      </Tab.Screen>
+      <Tab.Screen name="Settings" component={SettingsStack} />
     </Tab.Navigator>
   );
 }

@@ -214,3 +214,34 @@ console.warn = (...args) => {
   if (typeof msg === 'string' && msg.includes('Animated:')) return;
   originalWarn(...args);
 };
+
+// @react-navigation/elements requires PNG assets at import time
+// (Assets array). jest-expo can't transform those, so we provide a
+// stub that exposes the same shape the library expects.
+jest.mock('@react-navigation/elements', () => {
+  const React = require('react');
+  const { View, Text } = require('react-native');
+  const passthrough = (name) => {
+    const C = ({ children, ...rest }) => React.createElement(View, rest, children);
+    C.displayName = name;
+    return C;
+  };
+  return {
+    Assets: [],
+    SafeAreaProviderCompat: passthrough('SafeAreaProviderCompat'),
+    Screen: passthrough('Screen'),
+    ScreenContainer: passthrough('ScreenContainer'),
+    ScreenContent: passthrough('ScreenContent'),
+    ScreenFallback: passthrough('ScreenFallback'),
+    ScreenHeader: passthrough('ScreenHeader'),
+    Header: passthrough('Header'),
+    HeaderBackButton: passthrough('HeaderBackButton'),
+    HeaderBackground: passthrough('HeaderBackground'),
+    HeaderTitle: passthrough('HeaderTitle'),
+    MissingIcon: () => React.createElement(Text, null, '?'),
+    getDefaultHeaderHeight: () => 56,
+    getNamedContext: (name) =>
+      React.createContext(undefined).displayName || name || 'Context',
+    useHeaderHeight: () => 56,
+  };
+});
