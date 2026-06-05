@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { OfflineBanner } from '@/design/components/OfflineBanner/OfflineBanner';
 import { colors } from '@/design/tokens/colors';
+import { ToastHost } from '@/lib/toast/toast';
 
 import { RootNavigator } from './navigation/RootNavigator';
 import {
@@ -31,6 +32,7 @@ export function App() {
                   <StatusBar style="dark" />
                   <OfflineBannerHost />
                   <RootNavigator />
+                  <ToastHost>{null}</ToastHost>
                 </SafeAreaView>
               </NetInfoProvider>
             </AuthProvider>

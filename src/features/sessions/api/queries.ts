@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { inkKeys } from '@/features/inks/api/queries';
 import { penKeys } from '@/features/pens/api/queries';
+import { withRetry } from '@/lib/retry/retry';
 import type { Session } from '@/types/domain';
 
 import {
@@ -40,13 +41,13 @@ export function useCreateSession(uid: string | null) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: SessionInput) => {
-      const id = await createSession(uid!, input);
+      const id = await withRetry(() => createSession(uid!, input));
       // Mirror the Cloud Function `onSessionWrite` side-effect so the UI
       // counter is correct immediately. If the side-effect fails the
       // session is still created; the Cloud Function is the source of
       // truth and will reconcile on the next write.
       try {
-        await bumpCountersOnCreate(uid!, input);
+        await withRetry(() => bumpCountersOnCreate(uid!, input), { maxAttempts: 2 });
       } catch {
         // intentionally swallow; counters will be repaired server-side
       }
