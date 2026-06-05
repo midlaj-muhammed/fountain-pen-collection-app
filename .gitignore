@@ -64,3 +64,8 @@ __MACOSX/
 # Firebase native config (downloaded from Firebase console, never commit)
 GoogleService-Info.plist
 google-services*.json
+
+# Cloud Functions build artifacts (functions/ is its own workspace)
+functions/node_modules/
+functions/lib/
+functions/.firebase/
