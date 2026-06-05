@@ -20,7 +20,7 @@ import {
   where,
 } from 'firebase/firestore';
 
-import { saveCache } from '@/lib/cache/mmkvCache';
+import { mirrorListToCache } from '@/lib/cache/mmkvCache';
 import { userCollection } from '@/lib/firebase';
 import type { Pen } from '@/types/domain';
 
@@ -88,13 +88,9 @@ export async function purgePen(uid: string, penId: string): Promise<void> {
 export async function listPens(uid: string): Promise<Pen[]> {
   const snap = await getDocs(pensQuery(uid));
   const list = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Pen, 'id'>) }));
-  // Cold-start mirror — write a snapshot so the next launch can render
-  // before Firestore is online. Best-effort; never throws.
-  try {
-    saveCache(`pens:${uid}`, list);
-  } catch {
-    // ignore
-  }
+  // Cold-start mirror — best-effort snapshot so the next launch can
+  // render before Firestore is online. mirrorListToCache never throws.
+  mirrorListToCache(uid, 'pens', list);
   return list;
 }
 

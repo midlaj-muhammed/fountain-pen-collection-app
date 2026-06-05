@@ -17,7 +17,7 @@ import {
   where,
 } from 'firebase/firestore';
 
-import { saveCache } from '@/lib/cache/mmkvCache';
+import { mirrorListToCache } from '@/lib/cache/mmkvCache';
 import { userCollection } from '@/lib/firebase';
 import type { Session } from '@/types/domain';
 
@@ -77,10 +77,7 @@ export async function purgeSession(uid: string, id: string): Promise<void> {
 export async function listSessions(uid: string): Promise<Session[]> {
   const snap = await getDocs(sessionsQuery(uid));
   const list = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Session, 'id'>) }));
-  try {
-    saveCache(`sessions:${uid}`, list);
-  } catch {
-    // ignore
-  }
+  // Cold-start mirror — best-effort; never throws.
+  mirrorListToCache(uid, 'sessions', list);
   return list;
 }

@@ -36,4 +36,13 @@ export function clearAllCache(): void {
   mmkv.clearAll();
 }
 
+/**
+ * Cold-start mirror helper: writes a typed snapshot of a Firestore
+ * list response under a per-uid key. Pass the collection name as
+ * `kind` (pens / inks / sessions / nibs / pensInUse / etc).
+ */
+export function mirrorListToCache<T>(uid: string, kind: string, list: T[]): void {
+  saveCache(`${kind}:${uid}`, list);
+}
+
 export const __storageIdForDebug = STORAGE_ID;

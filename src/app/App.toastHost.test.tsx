@@ -85,18 +85,9 @@ describe('ToastHost wiring', () => {
 describe('App.tsx — ToastHost wraps RootNavigator', () => {
   it('the source file wraps <RootNavigator /> inside <ToastHost>', () => {
     const src = readFileSync(join(__dirname, 'App.tsx'), 'utf8');
-    // Either: <ToastHost><RootNavigator /></ToastHost>
-    // Or:     <ToastHost>...<RootNavigator />...</ToastHost>
-    // We accept both — the structural rule is "RootNavigator is a
-    // descendant of ToastHost".
-    const hostOpen = src.indexOf('<ToastHost');
-    const hostClose = src.indexOf('</ToastHost>');
-    const navOpen = src.indexOf('<RootNavigator');
-    expect(hostOpen).toBeGreaterThan(-1);
-    expect(hostClose).toBeGreaterThan(hostOpen);
-    expect(navOpen).toBeGreaterThan(hostOpen);
-    expect(navOpen).toBeLessThan(hostClose);
-    // Also: must not have <ToastHost>{null}</ToastHost>
+    // Structural rule: RootNavigator is a descendant of ToastHost.
+    expect(src).toMatch(/<ToastHost>[\s\S]*<RootNavigator\s*\/?>[\s\S]*<\/ToastHost>/);
+    // And the previous bug-shape must not return.
     expect(src).not.toMatch(/<ToastHost>\s*\{null\}\s*<\/ToastHost>/);
   });
 });
