@@ -5,8 +5,10 @@
   "main": "index.js",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "prebuild": "expo prebuild --no-install && ./scripts/apply-firebase-configs.sh",
+    "apply:firebase": "./scripts/apply-firebase-configs.sh",
     "web": "echo 'web disabled — out of scope for MVP' && exit 0",
     "lint": "eslint . --ext .ts,.tsx",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
