@@ -1,4 +1,5 @@
 /* eslint-disable react-native/no-raw-text */
+import { FlashList } from '@shopify/flash-list';
 import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -81,18 +82,22 @@ export function PenListScreen({ uid, onAddPen, onOpenPen, testID }: PenListScree
           </ButtonS>
         }
       />
-      <Stack gap="sm" style={styles.body}>
-        {items.map((p) => (
-          <PenListItem
-            key={p.id}
-            pen={p}
-            onPress={() => onOpenPen(p.id)}
-            onAddSession={() => {
-              /* Sessions slice (S4) — opens session form for this pen */
-            }}
-          />
-        ))}
-      </Stack>
+      <View style={styles.list}>
+        <FlashList
+          data={items}
+          keyExtractor={(p) => p.id}
+          estimatedItemSize={88}
+          renderItem={({ item }) => (
+            <PenListItem
+              pen={item}
+              onPress={() => onOpenPen(item.id)}
+              onAddSession={() => {
+                /* Sessions slice (S4) — opens session form for this pen */
+              }}
+            />
+          )}
+        />
+      </View>
       <FAB
         onPress={onAddPen}
         accessibilityLabel="Add pen"
@@ -111,6 +116,10 @@ const styles = StyleSheet.create({
     bottom: space.xl,
     position: 'absolute',
     right: space.lg,
+  },
+  list: {
+    flex: 1,
+    paddingHorizontal: space.lg,
   },
   wrap: {
     backgroundColor: colors.bg,
