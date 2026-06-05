@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { useInks } from '@/features/inks/api/queries';
 import { usePens } from '@/features/pens/api/queries';
 import { useSessions } from '@/features/sessions/api/queries';
+import type { Ink, Pen } from '@/types/domain';
 
 import {
   averageRating,
@@ -10,6 +11,7 @@ import {
   filterSessions,
   monthlyBuckets,
   mostUsed,
+  type MostUsed,
   type SessionFilters,
   totalMinutes,
   totalSessions,
@@ -20,8 +22,8 @@ export type Stats = {
   totalMinutes: number;
   averageRating: number;
   streak: number;
-  topPens: ReturnType<typeof mostUsed>;
-  topInks: ReturnType<typeof mostUsed>;
+  topPens: MostUsed<Pen>[];
+  topInks: MostUsed<Ink>[];
   monthly: ReturnType<typeof monthlyBuckets>;
 };
 
@@ -44,8 +46,8 @@ export function useStats(uid: string | null, filters: SessionFilters = {}): Stat
       totalMinutes: totalMinutes(filtered),
       averageRating: averageRating(filtered),
       streak: currentStreak(filtered),
-      topPens: mostUsed(filtered, pens, 'penId'),
-      topInks: mostUsed(filtered, inks, 'inkId'),
+      topPens: mostUsed<Pen>(filtered, pens, 'penId'),
+      topInks: mostUsed<Ink>(filtered, inks, 'inkId'),
       monthly: monthlyBuckets(filtered),
     };
   }, [sessions, pens, inks, filters]);
