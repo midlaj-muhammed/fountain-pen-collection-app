@@ -18,7 +18,9 @@ import {
 
 /**
  * Root app component. Wires providers in the order: Theme → Query → Auth → NetInfo.
- * The actual navigation tree lives in RootNavigator.
+ * The actual navigation tree lives in RootNavigator. ToastHost wraps
+ * the navigator so any screen mounted by the navigator can call
+ * useToast().
  */
 export function App() {
   return (
@@ -31,8 +33,9 @@ export function App() {
                 <SafeAreaView style={styles.safe}>
                   <StatusBar style="dark" />
                   <OfflineBannerHost />
-                  <RootNavigator />
-                  <ToastHost>{null}</ToastHost>
+                  <ToastHost>
+                    <RootNavigator />
+                  </ToastHost>
                 </SafeAreaView>
               </NetInfoProvider>
             </AuthProvider>

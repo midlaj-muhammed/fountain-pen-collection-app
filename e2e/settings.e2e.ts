@@ -16,7 +16,10 @@ describe('Settings', () => {
 
   it('opens Delete account and shows the confirm field', async () => {
     await element(by.text('Delete account')).tap();
-    await expect(screen.getByTestId ? null : null).toBeTruthy(); // smoke
+    // The Delete account screen renders the danger card with the
+    // "Type DELETE" copy. Asserting on that text confirms we landed
+    // on the right modal before typing the confirmation.
+    await expect(element(by.text(/Type DELETE/i))).toBeVisible();
     await element(by.id('da-confirm')).typeText('DELETE');
     await expect(element(by.id('da-delete'))).toBeVisible();
   });
