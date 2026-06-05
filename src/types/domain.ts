@@ -72,6 +72,7 @@ export type Ink = {
   brand: string;
   name: string;
   colorHex: string;
+  colorName: string;
   bottleSizeMl: number;
   currentLevelPct: InkLevelPct;
   isCartridge: boolean;
