@@ -4,6 +4,9 @@
  *  - All return Promises that resolve to a typed User | null
  *  - onAuthChanged returns an unsubscribe function
  */
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
+
 import {
   signInWithEmail,
   signUpWithEmail,
@@ -41,6 +44,17 @@ describe('auth wrappers', () => {
         email: expect.stringMatching(/@/),
       }),
     );
+  });
+
+  it('signInWithGoogle uses the @react-native-google-signin library + signInWithCredential', async () => {
+    (GoogleSignin.signIn as jest.Mock).mockClear();
+    (signInWithCredential as jest.Mock).mockClear();
+    await signInWithGoogle();
+    expect(GoogleSignin.signIn).toHaveBeenCalledTimes(1);
+    // The idToken returned by GoogleSignin must be exchanged via
+    // signInWithCredential with a GoogleAuthProvider.credential.
+    expect(GoogleAuthProvider.credential).toHaveBeenCalledWith('fake-google-id-token');
+    expect(signInWithCredential).toHaveBeenCalledTimes(1);
   });
 
   it('signOut resolves successfully', async () => {
