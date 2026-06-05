@@ -19,6 +19,7 @@ import {
   where,
 } from 'firebase/firestore';
 
+import { saveCache } from '@/lib/cache/mmkvCache';
 import { userCollection } from '@/lib/firebase';
 import type { Ink } from '@/types/domain';
 
@@ -80,7 +81,13 @@ export async function purgeInk(uid: string, inkId: string): Promise<void> {
 
 export async function listInks(uid: string): Promise<Ink[]> {
   const snap = await getDocs(inksQuery(uid));
-  return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Ink, 'id'>) }));
+  const list = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Ink, 'id'>) }));
+  try {
+    saveCache(`inks:${uid}`, list);
+  } catch {
+    // ignore
+  }
+  return list;
 }
 
 /** Upsert: write the entire doc at a known id. Used by tests and import flows. */

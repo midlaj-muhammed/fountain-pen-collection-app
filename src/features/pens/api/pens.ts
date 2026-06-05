@@ -20,6 +20,7 @@ import {
   where,
 } from 'firebase/firestore';
 
+import { saveCache } from '@/lib/cache/mmkvCache';
 import { userCollection } from '@/lib/firebase';
 import type { Pen } from '@/types/domain';
 
@@ -86,7 +87,15 @@ export async function purgePen(uid: string, penId: string): Promise<void> {
 
 export async function listPens(uid: string): Promise<Pen[]> {
   const snap = await getDocs(pensQuery(uid));
-  return snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Pen, 'id'>) }));
+  const list = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Pen, 'id'>) }));
+  // Cold-start mirror — write a snapshot so the next launch can render
+  // before Firestore is online. Best-effort; never throws.
+  try {
+    saveCache(`pens:${uid}`, list);
+  } catch {
+    // ignore
+  }
+  return list;
 }
 
 /** Upsert: write the entire doc at a known id. Used by tests and import flows. */
