@@ -85,4 +85,32 @@ describe('InkDetailScreen', () => {
     fireEvent.press(screen.getByText('Back'));
     expect(onBack).toHaveBeenCalled();
   });
+
+  it('soft-deletes the ink and fires onDelete after confirm', async () => {
+    await seedInk();
+    const onDelete = jest.fn();
+    renderWithProviders(
+      <InkDetailScreen
+        uid={TEST_UID}
+        inkId={TEST_INK_ID}
+        onEdit={() => {}}
+        onDelete={onDelete}
+        onBack={() => {}}
+        testID="id"
+      />,
+    );
+    await waitFor(() => {
+      expect(screen.getByText('Delete ink')).toBeTruthy();
+    });
+    fireEvent.press(screen.getByText('Delete ink'));
+    // Confirm modal opens
+    await waitFor(() => {
+      expect(screen.getByText('Delete this ink?')).toBeTruthy();
+    });
+    // Press the inner Delete button (text "Delete" inside the modal)
+    fireEvent.press(screen.getByText('Delete'));
+    await waitFor(() => {
+      expect(onDelete).toHaveBeenCalled();
+    });
+  });
 });
