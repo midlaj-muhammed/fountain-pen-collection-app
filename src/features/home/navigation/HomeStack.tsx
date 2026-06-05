@@ -1,4 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Timestamp } from 'firebase/firestore';
 
 import { useAuth } from '@/app/providers/AuthProvider';
 import { createInk, updateInk, type InkInput } from '@/features/inks/api/inks';
@@ -9,6 +10,10 @@ import { createPen, updatePen, type PenInput } from '@/features/pens/api/pens';
 import { PenForm } from '@/features/pens/components/PenForm';
 import { PenDetailScreen } from '@/features/pens/screens/PenDetailScreen';
 import { PenListScreen } from '@/features/pens/screens/PenListScreen';
+import { useCreateSession, useUpdateSession } from '@/features/sessions/api/queries';
+import { SessionDetailScreen } from '@/features/sessions/screens/SessionDetailScreen';
+import { SessionForm, type SessionFormValues } from '@/features/sessions/screens/SessionForm';
+import { SessionList } from '@/features/sessions/screens/SessionList';
 
 import { QuickLog } from '../components/QuickLog';
 import { HomeScreen } from '../screens/HomeScreen';
@@ -19,13 +24,15 @@ const Stack = createNativeStackNavigator<HomeStackParamList>();
 
 /**
  * The Pens tab's native stack. Home is the initial route so users land
- * on the dashboard. From Home they can drill into PenList / InkList,
- * open a Pen or Ink detail, or open the Add/Edit form. Tapping the Pens
- * tab again returns to Home.
+ * on the dashboard. From Home they can drill into PenList / InkList /
+ * SessionList, open a Pen / Ink / Session detail, or open the
+ * Add/Edit form. Tapping the Pens tab again returns to Home.
  */
 export function HomeStack() {
   const { user } = useAuth();
   const uid = user?.uid ?? null;
+  const createSession = useCreateSession(uid);
+  const updateSession = useUpdateSession(uid);
 
   return (
     <Stack.Navigator
@@ -43,7 +50,11 @@ export function HomeStack() {
               onSeeAllInks={() => navigation.navigate('InkList')}
               testID="home"
             />
-            <QuickLog uid={uid} onLogged={() => undefined} testID="ql" />
+            <QuickLog
+              uid={uid}
+              onLogged={(sessionId) => navigation.navigate('SessionDetail', { sessionId })}
+              testID="ql"
+            />
           </>
         )}
       </Stack.Screen>
@@ -65,6 +76,15 @@ export function HomeStack() {
           />
         )}
       </Stack.Screen>
+      <Stack.Screen name="SessionList">
+        {({ navigation }) => (
+          <SessionList
+            uid={uid}
+            onAddSession={() => navigation.navigate('SessionForm', { sessionId: undefined })}
+            onOpenSession={(sessionId) => navigation.navigate('SessionDetail', { sessionId })}
+          />
+        )}
+      </Stack.Screen>
       <Stack.Screen name="PenDetail">
         {({ navigation, route }) => (
           <PenDetailScreen
@@ -82,6 +102,17 @@ export function HomeStack() {
             uid={uid}
             inkId={route.params.inkId}
             onEdit={() => navigation.navigate('InkForm', { inkId: route.params.inkId })}
+            onDelete={() => navigation.goBack()}
+            onBack={() => navigation.goBack()}
+          />
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="SessionDetail">
+        {({ navigation, route }) => (
+          <SessionDetailScreen
+            uid={uid}
+            sessionId={route.params.sessionId}
+            onEdit={() => navigation.navigate('SessionForm', { sessionId: route.params.sessionId })}
             onDelete={() => navigation.goBack()}
             onBack={() => navigation.goBack()}
           />
@@ -142,6 +173,42 @@ export function HomeStack() {
                 await updateInk(uid!, route.params.inkId, input);
               } else {
                 await createInk(uid!, input);
+              }
+              navigation.goBack();
+            }}
+          />
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="SessionForm" options={{ presentation: 'modal' }}>
+        {({ navigation, route }) => (
+          <SessionForm
+            uid={uid}
+            sessionId={route.params.sessionId}
+            onCancel={() => navigation.goBack()}
+            onSubmit={async (values: SessionFormValues) => {
+              if (route.params.sessionId) {
+                await updateSession.mutateAsync({
+                  id: route.params.sessionId,
+                  patch: {
+                    date: Timestamp.now() as never,
+                    penId: values.penId,
+                    inkId: values.inkId,
+                    durationMin: values.durationMin,
+                    rating: values.rating,
+                    inkDriedOut: values.inkDriedOut,
+                    notes: values.notes,
+                  },
+                });
+              } else {
+                await createSession.mutateAsync({
+                  date: Timestamp.now() as never,
+                  penId: values.penId,
+                  inkId: values.inkId,
+                  durationMin: values.durationMin,
+                  rating: values.rating,
+                  inkDriedOut: values.inkDriedOut,
+                  notes: values.notes,
+                });
               }
               navigation.goBack();
             }}

@@ -13,6 +13,7 @@ import { radius } from '@/design/tokens/radius';
 import { space } from '@/design/tokens/spacing';
 import { useInks } from '@/features/inks/api/queries';
 import { usePens } from '@/features/pens/api/queries';
+import { useSession } from '@/features/sessions/api/queries';
 import type { Ink, Pen, Session } from '@/types/domain';
 
 const schema = z.object({
@@ -30,6 +31,8 @@ export type SessionFormValues = z.infer<typeof schema>;
 export type SessionFormProps = {
   uid: string | null;
   initial?: Session;
+  /** When set, the form will fetch and pre-fill the session by id. Ignored if `initial` is provided. */
+  sessionId?: string | undefined;
   onSubmit: (values: SessionFormValues) => void | Promise<void>;
   onCancel: () => void;
   isSubmitting?: boolean;
@@ -54,6 +57,7 @@ const defaultValues: SessionFormValues = {
 export function SessionForm({
   uid,
   initial,
+  sessionId,
   onSubmit,
   onCancel,
   isSubmitting,
@@ -62,7 +66,9 @@ export function SessionForm({
 }: SessionFormProps) {
   const { data: pens } = usePens(uid);
   const { data: inks } = useInks(uid);
-  const [values, setValues] = useState<SessionFormValues>(() => initialise(initial, pens, inks));
+  const { data: fetched } = useSession(uid, sessionId ?? null);
+  const source = initial ?? fetched ?? undefined;
+  const [values, setValues] = useState<SessionFormValues>(() => initialise(source, pens, inks));
 
   const set = <K extends keyof SessionFormValues>(key: K, v: SessionFormValues[K]) =>
     setValues((prev) => ({ ...prev, [key]: v }));
@@ -72,14 +78,14 @@ export function SessionForm({
 
   // Once pens/inks load, pre-fill the form for a brand-new session.
   useEffect(() => {
-    if (initial) return; // don't clobber an existing session's values
+    if (source) return; // don't clobber an existing session's values
     setValues((prev) => {
       const next = { ...prev };
       if (!prev.penId && pens?.[0]?.id) next.penId = pens[0].id;
       if (!prev.inkId && inks?.[0]?.id) next.inkId = inks[0].id;
       return next;
     });
-  }, [pens, inks, initial]);
+  }, [pens, inks, source]);
 
   const handleSubmit = async () => {
     if (Object.keys(errors).length > 0) return;
@@ -91,7 +97,7 @@ export function SessionForm({
       <SafeAreaView style={styles.safe} testID={testID}>
         <View style={styles.body}>
           <Text variant="h1" color="accent">
-            {initial ? 'Edit session' : 'Add session'}
+            {source ? 'Edit session' : 'Add session'}
           </Text>
           <Text variant="body" color="textMuted">
             Add a pen and an ink first to log a session.
@@ -109,7 +115,7 @@ export function SessionForm({
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
         <Stack flex={1} gap="lg">
           <Text variant="h1" color="accent">
-            {initial ? 'Edit session' : 'Add session'}
+            {source ? 'Edit session' : 'Add session'}
           </Text>
 
           {errorMessage ? (
@@ -206,7 +212,7 @@ export function SessionForm({
               fullWidth
               testID={`${testID}-submit`}
             >
-              {isSubmitting ? 'Saving…' : initial ? 'Save changes' : 'Add session'}
+              {isSubmitting ? 'Saving…' : source ? 'Save changes' : 'Add session'}
             </ButtonS>
             <ButtonS onPress={onCancel} variant="ghost" fullWidth>
               Cancel
