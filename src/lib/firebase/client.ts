@@ -1,16 +1,35 @@
 import type { FirebaseApp, FirebaseOptions } from 'firebase/app';
 import { getApp, getApps, initializeApp } from 'firebase/app';
+import { connectAuthEmulator, getAuth } from 'firebase/auth';
 
 import { env } from '@/config/env';
 
 /**
- * Firebase app configuration. Reads from `env` which is fed by EAS / Expo
- * Constants at build time — see `src/config/env.ts`. Values fall back to safe
- * dev placeholders so unit tests can run without real credentials.
+ * Whether the Firebase client should connect to the local emulator
+ * suite instead of the real project. Opt-in via the
+ * `EXPO_PUBLIC_USE_FIREBASE_EMULATOR=1` env var (the .env file or
+ * the EAS dev profile sets it for local development). Production
+ * builds leave the var unset and use the real project.
  *
- * Memoised: repeated calls return the same object so consumers can use it
- * for stable equality checks.
+ * Reads from `env` (typed env access) so tests can mock the env
+ * module instead of mutating process.env directly.
  */
+export function shouldUseEmulator(): boolean {
+  // env.EXPO_PUBLIC_USE_FIREBASE_EMULATOR is added to the env shape
+  // in dev/test; production omits the var.
+  return (env as Record<string, string | undefined>).EXPO_PUBLIC_USE_FIREBASE_EMULATOR === '1';
+}
+
+/** Standard Firebase emulator host (loopback). */
+export const EMULATOR_HOST = '127.0.0.1';
+/** Per-service emulator ports. Must match firebase.json. */
+export const EMULATOR_PORTS = {
+  auth: 9099,
+  functions: 5001,
+  firestore: 8080,
+  storage: 9199,
+} as const;
+
 let _options: FirebaseOptions | null = null;
 export function getFirebaseOptions(): FirebaseOptions {
   if (!_options) {
@@ -26,15 +45,31 @@ export function getFirebaseOptions(): FirebaseOptions {
   return _options;
 }
 
-/**
- * Returns the singleton Firebase app. Idempotent — safe to call from anywhere.
- *
- * If a default app already exists (e.g. because some test setup pre-initialised
- * one), we return it without creating a second.
- */
+let _app: FirebaseApp | null = null;
+let _authEmulatorWired = false;
+
 export function getFirebaseApp(): FirebaseApp {
-  if (getApps().length > 0) {
-    return getApp();
+  if (!_app) {
+    if (getApps().length > 0) {
+      _app = getApp();
+    } else {
+      _app = initializeApp(getFirebaseOptions());
+    }
   }
-  return initializeApp(getFirebaseOptions());
+  // Idempotent emulator wiring — the SDK throws on double-connect for
+  // some services, so we guard with a flag. Runs after the app is
+  // resolved so a pre-initialised app (e.g. from a test setup) still
+  // gets wired.
+  if (shouldUseEmulator() && !_authEmulatorWired) {
+    // Auth takes a full URL (http://host:port); Firestore/Storage/
+    // Functions take host + port separately. The SDK's signature
+    // differs across services.
+    connectAuthEmulator(
+      getAuth(_app),
+      `http://${EMULATOR_HOST}:${EMULATOR_PORTS.auth}`,
+      { disableWarnings: true },
+    );
+    _authEmulatorWired = true;
+  }
+  return _app;
 }

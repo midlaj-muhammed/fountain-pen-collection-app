@@ -1,13 +1,17 @@
-import { type Functions, getFunctions } from 'firebase/functions';
+import { type Functions, connectFunctionsEmulator, getFunctions } from 'firebase/functions';
 
-import { getFirebaseApp } from './client';
+import { EMULATOR_HOST, EMULATOR_PORTS, getFirebaseApp, shouldUseEmulator } from './client';
 
-/** Singleton Functions instance. */
 let _functions: Functions | null = null;
+let _emulatorWired = false;
 
 export function getFunctionsInstance(): Functions {
   if (!_functions) {
     _functions = getFunctions(getFirebaseApp());
+  }
+  if (!_emulatorWired && shouldUseEmulator()) {
+    connectFunctionsEmulator(_functions, EMULATOR_HOST, EMULATOR_PORTS.functions);
+    _emulatorWired = true;
   }
   return _functions;
 }

@@ -2,18 +2,23 @@ import {
   type CollectionReference,
   type Firestore,
   collection,
+  connectFirestoreEmulator,
   enableIndexedDbPersistence,
   getFirestore,
 } from 'firebase/firestore';
 
-import { getFirebaseApp } from './client';
+import { EMULATOR_HOST, EMULATOR_PORTS, getFirebaseApp, shouldUseEmulator } from './client';
 
-/** Singleton Firestore instance. Lazy-initialised from the Firebase app. */
 let _db: Firestore | null = null;
+let _emulatorWired = false;
 
 export function getDb(): Firestore {
   if (!_db) {
     _db = getFirestore(getFirebaseApp());
+  }
+  if (!_emulatorWired && shouldUseEmulator()) {
+    connectFirestoreEmulator(_db, EMULATOR_HOST, EMULATOR_PORTS.firestore);
+    _emulatorWired = true;
   }
   return _db;
 }

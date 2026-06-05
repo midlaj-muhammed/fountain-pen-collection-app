@@ -60,3 +60,7 @@ e2e/screenshots/
 Thumbs.db
 __MACOSX/
 .claude/
+
+# Firebase native config (downloaded from Firebase console, never commit)
+GoogleService-Info.plist
+google-services*.json

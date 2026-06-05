@@ -67,6 +67,7 @@ jest.mock('firebase/auth', () => {
   });
   return {
     getAuth: jest.fn(() => mockAuthState),
+    connectAuthEmulator: jest.fn(),
     onAuthStateChanged,
     signInWithEmailAndPassword: jest.fn(async () => ({ user: mockAuthState.currentUser })),
     signInWithPopup: jest.fn(async () => ({ user: mockAuthState.currentUser })),
@@ -165,6 +166,7 @@ jest.mock('firebase/firestore', () => {
     serverTimestamp: jest.fn(() => ({ _serverTimestamp: true })),
     Timestamp: { now: () => ({ seconds: Date.now() / 1000, nanoseconds: 0, toDate: () => new Date() }) },
     enableIndexedDbPersistence: jest.fn(async () => undefined),
+    connectFirestoreEmulator: jest.fn(),
   };
   // Test-only escape hatch: lets tests reset in-memory state between cases.
   api.__resetMock = () => {
@@ -199,12 +201,17 @@ jest.mock('firebase/storage', () => {
     uploadBytes: jest.fn(async () => undefined),
     getDownloadURL: jest.fn(async (r) => `https://mock-storage.example.com/${r._path}`),
     deleteObject: jest.fn(async () => undefined),
+    connectStorageEmulator: jest.fn(),
   };
 });
 
-jest.mock('firebase/functions', () => ({
-  getFunctions: jest.fn(() => ({ _fn: true })),
-}));
+jest.mock('firebase/functions', () => {
+  const fn = { _fn: true };
+  return {
+    getFunctions: jest.fn(() => fn),
+    connectFunctionsEmulator: jest.fn(),
+  };
+});
 
 // Silence React Native warnings in tests
 const originalWarn = console.warn;

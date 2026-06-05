@@ -1,6 +1,7 @@
 import {
   type FirebaseStorage,
   type StorageReference,
+  connectStorageEmulator,
   deleteObject,
   getDownloadURL,
   getStorage as fbGetStorage,
@@ -8,14 +9,18 @@ import {
   uploadBytes,
 } from 'firebase/storage';
 
-import { getFirebaseApp } from './client';
+import { EMULATOR_HOST, EMULATOR_PORTS, getFirebaseApp, shouldUseEmulator } from './client';
 
-/** Singleton Storage instance. */
 let _storage: FirebaseStorage | null = null;
+let _emulatorWired = false;
 
 export function getStorage(): FirebaseStorage {
   if (!_storage) {
     _storage = fbGetStorage(getFirebaseApp());
+  }
+  if (!_emulatorWired && shouldUseEmulator()) {
+    connectStorageEmulator(_storage, EMULATOR_HOST, EMULATOR_PORTS.storage);
+    _emulatorWired = true;
   }
   return _storage;
 }
