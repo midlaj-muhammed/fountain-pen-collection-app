@@ -9,13 +9,13 @@
       "pnpm": "9.15.0",
       "env": {
         "EXPO_NO_TYPESCRIPT_SETUP": "1",
-        "FIREBASE_API_KEY": "",
-        "FIREBASE_AUTH_DOMAIN": "",
-        "FIREBASE_PROJECT_ID": "",
-        "FIREBASE_STORAGE_BUCKET": "",
-        "FIREBASE_MESSAGING_SENDER_ID": "",
-        "FIREBASE_APP_ID": "",
-        "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": ""
+        "FIREBASE_API_KEY": "AIzaSyDllTrmVfOifTU_3brCAeCYvdQh0o97UcI",
+        "FIREBASE_AUTH_DOMAIN": "pen-app-flutter.firebaseapp.com",
+        "FIREBASE_PROJECT_ID": "pen-app-flutter",
+        "FIREBASE_STORAGE_BUCKET": "pen-app-flutter.firebasestorage.app",
+        "FIREBASE_MESSAGING_SENDER_ID": "913057838875",
+        "FIREBASE_APP_ID": "1:913057838875:android:80dcb804d3fc0ec4b805be",
+        "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": "0"
       }
     },
     "development": {
@@ -27,13 +27,13 @@
         "simulator": true
       },
       "env": {
-        "FIREBASE_API_KEY": "",
-        "FIREBASE_AUTH_DOMAIN": "",
-        "FIREBASE_PROJECT_ID": "",
-        "FIREBASE_STORAGE_BUCKET": "",
-        "FIREBASE_MESSAGING_SENDER_ID": "",
-        "FIREBASE_APP_ID": "",
-        "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": ""
+        "FIREBASE_API_KEY": "AIzaSyDllTrmVfOifTU_3brCAeCYvdQh0o97UcI",
+        "FIREBASE_AUTH_DOMAIN": "pen-app-flutter.firebaseapp.com",
+        "FIREBASE_PROJECT_ID": "pen-app-flutter",
+        "FIREBASE_STORAGE_BUCKET": "pen-app-flutter.firebasestorage.app",
+        "FIREBASE_MESSAGING_SENDER_ID": "913057838875",
+        "FIREBASE_APP_ID": "1:913057838875:android:80dcb804d3fc0ec4b805be",
+        "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": "0"
       }
     },
     "preview": {
@@ -44,13 +44,13 @@
         "simulator": false
       },
       "env": {
-        "FIREBASE_API_KEY": "",
-        "FIREBASE_AUTH_DOMAIN": "",
-        "FIREBASE_PROJECT_ID": "",
-        "FIREBASE_STORAGE_BUCKET": "",
-        "FIREBASE_MESSAGING_SENDER_ID": "",
-        "FIREBASE_APP_ID": "",
-        "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": ""
+        "FIREBASE_API_KEY": "AIzaSyDllTrmVfOifTU_3brCAeCYvdQh0o97UcI",
+        "FIREBASE_AUTH_DOMAIN": "pen-app-flutter.firebaseapp.com",
+        "FIREBASE_PROJECT_ID": "pen-app-flutter",
+        "FIREBASE_STORAGE_BUCKET": "pen-app-flutter.firebasestorage.app",
+        "FIREBASE_MESSAGING_SENDER_ID": "913057838875",
+        "FIREBASE_APP_ID": "1:913057838875:android:80dcb804d3fc0ec4b805be",
+        "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": "0"
       }
     },
     "production": {
@@ -58,13 +58,13 @@
       "autoIncrement": true,
       "channel": "production",
       "env": {
-        "FIREBASE_API_KEY": "",
-        "FIREBASE_AUTH_DOMAIN": "",
-        "FIREBASE_PROJECT_ID": "",
-        "FIREBASE_STORAGE_BUCKET": "",
-        "FIREBASE_MESSAGING_SENDER_ID": "",
-        "FIREBASE_APP_ID": "",
-        "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": ""
+        "FIREBASE_API_KEY": "AIzaSyDllTrmVfOifTU_3brCAeCYvdQh0o97UcI",
+        "FIREBASE_AUTH_DOMAIN": "pen-app-flutter.firebaseapp.com",
+        "FIREBASE_PROJECT_ID": "pen-app-flutter",
+        "FIREBASE_STORAGE_BUCKET": "pen-app-flutter.firebasestorage.app",
+        "FIREBASE_MESSAGING_SENDER_ID": "913057838875",
+        "FIREBASE_APP_ID": "1:913057838875:android:80dcb804d3fc0ec4b805be",
+        "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": "0"
       }
     }
   },

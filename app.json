@@ -12,7 +12,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#FAF8F4"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.penapp.penApp"
@@ -26,8 +28,9 @@
     },
     "extra": {
       "eas": {
-        "projectId": "00000000-0000-0000-0000-000000000000"
+        "projectId": "522cbfc6-2cb2-4d34-bf0d-c67e8f161c82"
       }
-    }
+    },
+    "owner": "midlajvalappil"
   }
 }
