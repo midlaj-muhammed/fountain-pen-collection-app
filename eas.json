@@ -15,7 +15,8 @@
         "FIREBASE_STORAGE_BUCKET": "pen-app-flutter.firebasestorage.app",
         "FIREBASE_MESSAGING_SENDER_ID": "913057838875",
         "FIREBASE_APP_ID": "1:913057838875:android:80dcb804d3fc0ec4b805be",
-        "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": "0"
+        "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": "0",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "913057838875-123hqo7cgtef4vel22v6r9qrc879v5jb.apps.googleusercontent.com"
       }
     },
     "development": {
@@ -33,7 +34,8 @@
         "FIREBASE_STORAGE_BUCKET": "pen-app-flutter.firebasestorage.app",
         "FIREBASE_MESSAGING_SENDER_ID": "913057838875",
         "FIREBASE_APP_ID": "1:913057838875:android:80dcb804d3fc0ec4b805be",
-        "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": "0"
+        "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": "0",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "913057838875-123hqo7cgtef4vel22v6r9qrc879v5jb.apps.googleusercontent.com"
       }
     },
     "preview": {
@@ -50,7 +52,8 @@
         "FIREBASE_STORAGE_BUCKET": "pen-app-flutter.firebasestorage.app",
         "FIREBASE_MESSAGING_SENDER_ID": "913057838875",
         "FIREBASE_APP_ID": "1:913057838875:android:80dcb804d3fc0ec4b805be",
-        "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": "0"
+        "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": "0",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "913057838875-123hqo7cgtef4vel22v6r9qrc879v5jb.apps.googleusercontent.com"
       }
     },
     "production": {
@@ -64,7 +67,8 @@
         "FIREBASE_STORAGE_BUCKET": "pen-app-flutter.firebasestorage.app",
         "FIREBASE_MESSAGING_SENDER_ID": "913057838875",
         "FIREBASE_APP_ID": "1:913057838875:android:80dcb804d3fc0ec4b805be",
-        "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": "0"
+        "EXPO_PUBLIC_USE_FIREBASE_EMULATOR": "0",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "913057838875-123hqo7cgtef4vel22v6r9qrc879v5jb.apps.googleusercontent.com"
       }
     }
   },
