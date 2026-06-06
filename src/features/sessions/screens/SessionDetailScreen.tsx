@@ -1,6 +1,7 @@
 /* eslint-disable react-native/no-raw-text, react-native/no-color-literals */
 import { useState } from 'react';
-import { Alert, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ButtonS } from '@/design/components/ButtonS/ButtonS';
 import { Modal } from '@/design/components/Modal/Modal';
