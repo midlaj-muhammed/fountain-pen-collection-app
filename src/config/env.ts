@@ -11,10 +11,6 @@
  * API keys; the dev placeholders are non-secret dev values that
  * let the app boot in dev/CI without EAS.
  *
- * The real values for the pen-app-flutter project:
- *   API_KEY:    ***REMOVED***
- *   PROJECT_ID: pen-app-flutter
- *
  * Run `eas env:create --environment development --name FIREBASE_API_KEY --value <...>`
  * for each of the six FIREBASE_* vars to wire production builds.
  */
@@ -31,7 +27,7 @@ function read(key: string, fallback: string): string {
 }
 
 export const env = {
-  FIREBASE_API_KEY: read('FIREBASE_API_KEY', '***REMOVED***'),
+  FIREBASE_API_KEY: read('FIREBASE_API_KEY', "${FIREBASE_API_KEY}"),
   FIREBASE_AUTH_DOMAIN: read('FIREBASE_AUTH_DOMAIN', 'pen-app-flutter.firebaseapp.com'),
   FIREBASE_PROJECT_ID: read('FIREBASE_PROJECT_ID', 'pen-app-flutter'),
   FIREBASE_STORAGE_BUCKET: read('FIREBASE_STORAGE_BUCKET', 'pen-app-flutter.firebasestorage.app'),

@@ -9,7 +9,7 @@
       "pnpm": "9.15.0",
       "env": {
         "EXPO_NO_TYPESCRIPT_SETUP": "1",
-        "FIREBASE_API_KEY": "***REMOVED***",
+        "FIREBASE_API_KEY": "${FIREBASE_API_KEY}",
         "FIREBASE_AUTH_DOMAIN": "pen-app-flutter.firebaseapp.com",
         "FIREBASE_PROJECT_ID": "pen-app-flutter",
         "FIREBASE_STORAGE_BUCKET": "pen-app-flutter.firebasestorage.app",
@@ -27,7 +27,7 @@
         "simulator": true
       },
       "env": {
-        "FIREBASE_API_KEY": "***REMOVED***",
+        "FIREBASE_API_KEY": "${FIREBASE_API_KEY}",
         "FIREBASE_AUTH_DOMAIN": "pen-app-flutter.firebaseapp.com",
         "FIREBASE_PROJECT_ID": "pen-app-flutter",
         "FIREBASE_STORAGE_BUCKET": "pen-app-flutter.firebasestorage.app",
@@ -44,7 +44,7 @@
         "simulator": false
       },
       "env": {
-        "FIREBASE_API_KEY": "***REMOVED***",
+        "FIREBASE_API_KEY": "${FIREBASE_API_KEY}",
         "FIREBASE_AUTH_DOMAIN": "pen-app-flutter.firebaseapp.com",
         "FIREBASE_PROJECT_ID": "pen-app-flutter",
         "FIREBASE_STORAGE_BUCKET": "pen-app-flutter.firebasestorage.app",
@@ -58,7 +58,7 @@
       "autoIncrement": true,
       "channel": "production",
       "env": {
-        "FIREBASE_API_KEY": "***REMOVED***",
+        "FIREBASE_API_KEY": "${FIREBASE_API_KEY}",
         "FIREBASE_AUTH_DOMAIN": "pen-app-flutter.firebaseapp.com",
         "FIREBASE_PROJECT_ID": "pen-app-flutter",
         "FIREBASE_STORAGE_BUCKET": "pen-app-flutter.firebasestorage.app",
