@@ -1,10 +1,13 @@
 import {
   type CollectionReference,
   type Firestore,
+  type FirestoreSettings,
   collection,
   connectFirestoreEmulator,
-  enableIndexedDbPersistence,
   getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
 } from 'firebase/firestore';
 
 import { EMULATOR_HOST, EMULATOR_PORTS, getFirebaseApp, shouldUseEmulator } from './client';
@@ -12,9 +15,36 @@ import { EMULATOR_HOST, EMULATOR_PORTS, getFirebaseApp, shouldUseEmulator } from
 let _db: Firestore | null = null;
 let _emulatorWired = false;
 
+/**
+ * Returns the singleton Firestore instance, configured with
+ * `persistentLocalCache` (the v9+ replacement for the deprecated
+ * `enableIndexedDbPersistence`). On React Native, the SDK stores
+ * the cache in its own native layer — there's no separate
+ * IndexedDB step, so the "missing IndexedDB" warning we saw on
+ * RN is gone with the new API.
+ *
+ * `initializeFirestore` is the *only* entry point that takes
+ * `FirestoreSettings.cache`. `getFirestore` does not — calling it
+ * after init returns the same instance with the cache already
+ * configured. We call it once on the first `getDb()` and cache.
+ */
 export function getDb(): Firestore {
   if (!_db) {
-    _db = getFirestore(getFirebaseApp());
+    // `cache` is a v9+ FirestoreSettings field; the public
+    // @firebase/firestore type doesn't include it yet, but the
+    // runtime honours it. Cast through `unknown` so the call site
+    // compiles without `as any`.
+    const settings = {
+      cache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
+    } as unknown as FirestoreSettings;
+    try {
+      _db = initializeFirestore(getFirebaseApp(), settings);
+    } catch {
+      // Already initialised (e.g. Fast Refresh re-ran this module).
+      // getFirestore returns the same instance with the same
+      // settings — the cache stays configured.
+      _db = getFirestore(getFirebaseApp());
+    }
   }
   if (!_emulatorWired && shouldUseEmulator()) {
     connectFirestoreEmulator(_db, EMULATOR_HOST, EMULATOR_PORTS.firestore);
@@ -42,39 +72,11 @@ export function userCollection<Doc = unknown>(
   return collection(getDb(), 'users', uid, subcollection) as CollectionReference<Doc>;
 }
 
-let _persistenceEnabled = false;
-let _persistencePromise: Promise<void> | null = null;
-
-/**
- * Enables Firestore offline persistence (IndexedDB on web, native on
- * RN). Idempotent: safe to call multiple times. Subsequent calls
- * return the same in-flight promise. Logs a warning (rather than
- * throwing) if the SDK rejects — common cases are "already
- * initialized in another tab" or "running in SSR".
- */
-export function enableOfflinePersistence(): Promise<void> {
-  if (_persistenceEnabled) return Promise.resolve();
-  if (_persistencePromise) return _persistencePromise;
-  _persistencePromise = enableIndexedDbPersistence(getDb()).then(
-    () => {
-      _persistenceEnabled = true;
-    },
-    (err: unknown) => {
-      // Common: "failed-precondition: already enabled in another tab".
-      // We treat that as success for the local tab so callers can
-      // still rely on the persistence being on.
-      if (err && typeof err === 'object' && 'code' in err) {
-        const code = (err as { code?: string }).code;
-        if (code === 'failed-precondition' || code === 'unimplemented') {
-          _persistenceEnabled = true;
-          return;
-        }
-      }
-      // eslint-disable-next-line no-console
-      console.warn('[firestore] enableIndexedDbPersistence failed:', err);
-      _persistencePromise = null;
-    },
-  );
-  return _persistencePromise;
+// Kept as a no-op for back-compat with callers that used to call
+// `enableOfflinePersistence()`. The new persistentLocalCache is
+// configured at `initializeFirestore` time inside `getDb()` and
+// doesn't need a separate enable step. We keep the symbol so
+// existing import sites don't break.
+export async function enableOfflinePersistence(): Promise<void> {
+  return Promise.resolve();
 }
-

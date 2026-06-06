@@ -1,5 +1,6 @@
 /* eslint-disable react-native/no-raw-text */
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { z } from 'zod';
 
 import { ButtonS } from '@/design/components/ButtonS/ButtonS';
@@ -21,7 +22,7 @@ const schema = z.object({
 export type SignUpValues = z.infer<typeof schema>;
 
 export type SignUpScreenProps = {
-  onSubmit: (values: SignUpValues) => void;
+  onSubmit: (values: SignUpValues) => Promise<void> | void;
   onSignIn: () => void;
   onSignUpWithGoogle?: () => void;
   testID?: string;
@@ -37,7 +38,7 @@ export function SignUpScreen({
 }: SignUpScreenProps) {
   const form = useAuthForm();
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     form.startSubmit();
     const parsed = schema.safeParse({ email: form.email, password: form.password });
     if (!parsed.success) {
@@ -50,7 +51,16 @@ export function SignUpScreen({
       form.finishSubmit();
       return;
     }
-    onSubmit(parsed.data);
+    // onSubmit is async and may throw (auth errors are surfaced via
+    // Alert by the AuthStack). Always finish submitting so the button
+    // doesn't stay disabled if the call rejects.
+    try {
+      await onSubmit(parsed.data);
+    } catch {
+      // Swallow — the caller already showed an Alert.
+    } finally {
+      form.finishSubmit();
+    }
   };
 
   return (
@@ -108,12 +118,13 @@ export function SignUpScreen({
           </ButtonS>
           {onSignUpWithGoogle ? (
             <ButtonS
-              onPress={onSignUpWithGoogle}
+              onPress={form.signInWithGoogle}
+              disabled={form.isSubmitting}
               variant="secondary"
               fullWidth
               testID={`${testID}-google`}
             >
-              Continue with Google
+              {form.isSubmitting ? 'Signing in…' : 'Continue with Google'}
             </ButtonS>
           ) : null}
           <Pressable onPress={onSignIn} testID={`${testID}-signin-link`}>

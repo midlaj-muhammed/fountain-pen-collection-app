@@ -3,21 +3,22 @@ import {
   type User as FirebaseUser,
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
-  getAuth,
   onAuthStateChanged,
+  sendPasswordResetEmail as fbSendPasswordResetEmail,
   signInWithCredential,
   signInWithEmailAndPassword,
   signOut as fbSignOut,
 } from 'firebase/auth';
 import { z } from 'zod';
 
-import { getFirebaseApp } from './client';
+import { getFirebaseAuth } from './client';
 
 export type AuthUser = {
   uid: string;
   email: string | null;
   displayName: string | null;
   photoURL: string | null;
+  emailVerified: boolean;
 };
 
 const credentialsSchema = z.object({
@@ -32,13 +33,14 @@ function toAuthUser(u: FirebaseUser | null): AuthUser | null {
     email: u.email,
     displayName: u.displayName,
     photoURL: u.photoURL,
+    emailVerified: u.emailVerified,
   };
 }
 
 export async function signInWithEmail(email: string, password: string): Promise<AuthUser> {
   const parsed = credentialsSchema.parse({ email, password });
   const cred = await signInWithEmailAndPassword(
-    getAuth(getFirebaseApp()),
+    getFirebaseAuth(),
     parsed.email,
     parsed.password,
   );
@@ -48,7 +50,7 @@ export async function signInWithEmail(email: string, password: string): Promise<
 export async function signUpWithEmail(email: string, password: string): Promise<AuthUser> {
   const parsed = credentialsSchema.parse({ email, password });
   const cred = await createUserWithEmailAndPassword(
-    getAuth(getFirebaseApp()),
+    getFirebaseAuth(),
     parsed.email,
     parsed.password,
   );
@@ -75,12 +77,12 @@ export async function signInWithGoogle(): Promise<AuthUser> {
     throw new Error('Google Sign-in returned no idToken.');
   }
   const credential = GoogleAuthProvider.credential(response.data.idToken);
-  const cred = await signInWithCredential(getAuth(getFirebaseApp()), credential);
+  const cred = await signInWithCredential(getFirebaseAuth(), credential);
   return toAuthUser(cred.user)!;
 }
 
 export async function signOut(): Promise<void> {
-  await fbSignOut(getAuth(getFirebaseApp()));
+  await fbSignOut(getFirebaseAuth());
   // Also clear the native Google session so the next signIn flow
   // shows the account chooser instead of silently re-using the
   // last account.
@@ -93,9 +95,19 @@ export async function signOut(): Promise<void> {
 }
 
 /**
+ * Send a password-reset email via Firebase Auth. Throws on invalid
+ * email or network failure; the caller is expected to surface the
+ * error to the user. Used by the Forgot Password screen.
+ */
+export async function sendPasswordResetEmail(email: string): Promise<void> {
+  const parsed = z.string().email('Invalid email').parse(email);
+  await fbSendPasswordResetEmail(getFirebaseAuth(), parsed);
+}
+
+/**
  * Subscribe to auth state changes. Returns an unsubscribe function.
  * The callback receives `null` when the user signs out.
  */
 export function onAuthChanged(cb: (user: AuthUser | null) => void): () => void {
-  return onAuthStateChanged(getAuth(getFirebaseApp()), (u) => cb(toAuthUser(u)));
+  return onAuthStateChanged(getFirebaseAuth(), (u) => cb(toAuthUser(u)));
 }
