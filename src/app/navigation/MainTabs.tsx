@@ -1,31 +1,16 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Edit3, Calendar as CalIcon, Heart, Settings as SettingsIcon, Feather } from 'lucide-react-native';
-import { StyleSheet, View } from 'react-native';
 
-import { Text } from '@/design/primitives/Text';
 import { colors } from '@/design/tokens/colors';
-import { space } from '@/design/tokens/spacing';
+import { CalendarStack } from '@/features/calendar/navigation/CalendarStack';
 import { HomeStack } from '@/features/home/navigation/HomeStack';
 import { InkStack } from '@/features/inks/navigation/InkStack';
 import { SettingsStack } from '@/features/settings/navigation/SettingsStack';
+import { WishlistStack } from '@/features/wishlist/navigation/WishlistStack';
 
 import type { MainTabParamList } from './types';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
-
-// Placeholder screens — replaced by real feature screens as P3 ships.
-function Placeholder({ title }: { title: string }) {
-  return (
-    <View style={styles.placeholder}>
-      <Text variant="h2" color="accent">
-        {title}
-      </Text>
-      <Text variant="body" color="textMuted" center>
-        Coming soon.
-      </Text>
-    </View>
-  );
-}
 
 export function MainTabs() {
   return (
@@ -59,23 +44,9 @@ export function MainTabs() {
     >
       <Tab.Screen name="Pens" component={HomeStack} />
       <Tab.Screen name="Inks" component={InkStack} />
-      <Tab.Screen name="Calendar">
-        {() => <Placeholder title="Calendar" />}
-      </Tab.Screen>
-      <Tab.Screen name="Wishlist">
-        {() => <Placeholder title="Wishlist" />}
-      </Tab.Screen>
+      <Tab.Screen name="Calendar" component={CalendarStack} />
+      <Tab.Screen name="Wishlist" component={WishlistStack} />
       <Tab.Screen name="Settings" component={SettingsStack} />
     </Tab.Navigator>
   );
 }
-
-const styles = StyleSheet.create({
-  placeholder: {
-    alignItems: 'center',
-    backgroundColor: colors.bg,
-    flex: 1,
-    justifyContent: 'center',
-    padding: space.lg,
-  },
-});
