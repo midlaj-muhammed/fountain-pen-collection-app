@@ -10,6 +10,7 @@ import {
   applySessionDelta,
   bucketForMonth,
   computeMonthlyBuckets,
+  defaultUserDocPayload,
   planUserDataDeletion,
 } from './logic';
 
@@ -60,5 +61,43 @@ describe('planUserDataDeletion', () => {
     expect(plan.firestorePaths).toContain('users/alice-uid/inks');
     expect(plan.firestorePaths).toContain('users/alice-uid/sessions');
     expect(plan.storagePrefixes).toContain('users/alice-uid/');
+  });
+});
+
+describe('defaultUserDocPayload', () => {
+  it('produces the canonical first-auth user shape', () => {
+    const payload = defaultUserDocPayload({
+      displayName: 'Alice',
+      email: 'alice@example.com',
+      photoURL: 'https://example.com/a.png',
+      emailVerified: true,
+    });
+    expect(payload).toEqual({
+      displayName: 'Alice',
+      email: 'alice@example.com',
+      photoURL: 'https://example.com/a.png',
+      emailVerified: true,
+      plan: 'free',
+      settings: {
+        theme: 'system',
+        fontSize: 'md',
+        reminderEnabled: false,
+        reminderHour: 20,
+        reorderAlertEnabled: true,
+      },
+    });
+  });
+
+  it('coerces null display name/email/photoURL to safe defaults', () => {
+    const payload = defaultUserDocPayload({
+      displayName: null,
+      email: null,
+      photoURL: null,
+      emailVerified: false,
+    });
+    expect(payload.displayName).toBe('');
+    expect(payload.email).toBe('');
+    expect(payload.photoURL).toBeNull();
+    expect(payload.emailVerified).toBe(false);
   });
 });
