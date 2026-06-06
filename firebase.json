@@ -5,6 +5,21 @@
   "storage": {
     "rules": "storage.rules"
   },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log"
+      ],
+      "predeploy": [
+        "sh -c 'cd .. && sh scripts/prebuild-functions.sh'"
+      ]
+    }
+  ],
   "emulators": {
     "auth":      { "port": 9099 },
     "functions": { "port": 5001 },

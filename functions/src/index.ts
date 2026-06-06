@@ -1,9 +1,13 @@
 /**
  * MyPen Cloud Functions.
  *
- * Three functions:
- *   - onSessionWrite  — Firestore trigger; keeps pen/ink counters
- *     in sync with session create/delete.
+ * Five functions:
+ *   - onUserCreated    — Auth trigger; seeds the Firestore
+ *     users/{uid} doc with default settings the first time a
+ *     Firebase Auth user is created (email signup, Google
+ *     sign-in, Apple sign-in, anonymous upgrade, etc.).
+ *   - onSessionCreated / onSessionDeleted — Firestore triggers;
+ *     keep pen/ink counters in sync with session create/delete.
  *   - monthlyStats     — scheduled; pre-aggregates sessions into
  *     users/{uid}/stats/{YYYY-MM} for fast client reads.
  *   - deleteUserData   — HTTPS callable; cascade-deletes a user's
@@ -14,6 +18,7 @@
  * so it can be unit-tested without the admin SDK.
  */
 import * as admin from 'firebase-admin';
+import { user as authUser } from 'firebase-functions/v1/auth';
 import { onDocumentCreated, onDocumentDeleted } from 'firebase-functions/v2/firestore';
 import { onSchedule } from 'firebase-functions/v2/scheduler';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
@@ -23,12 +28,46 @@ import {
   applySessionDelta,
   bucketForMonth,
   computeMonthlyBuckets,
+  defaultUserDocPayload,
   planUserDataDeletion,
   type SessionChangeType,
   type SessionLike,
 } from './logic';
 
 admin.initializeApp();
+
+// ── onUserCreated ────────────────────────────────────────────
+
+/**
+ * Seeds the Firestore `users/{uid}` doc the first time a Firebase
+ * Auth user is created. Without this, every screen that calls
+ * `useUser(uid)` returns `null` for the lifetime of the user (until
+ * the client-side fallback in AuthProvider runs) and shows a
+ * skeleton forever.
+ *
+ * Idempotent: the trigger uses `set(..., { merge: true })` so a
+ * pre-existing doc (e.g. written by the client-side seed or a
+ * partial earlier write) is left intact. We only fill in missing
+ * fields, never overwrite the user's choices.
+ */
+export const onUserCreated = authUser().onCreate(async (user) => {
+  const { uid } = user;
+  const userRef = admin.firestore().doc(`users/${uid}`);
+  const snap = await userRef.get();
+  if (snap.exists) {
+    // Doc already exists (e.g. client-side seed, or a manual
+    // write during testing). Don't touch it.
+    return;
+  }
+  await userRef.set(
+    {
+      ...defaultUserDocPayload(user),
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+    { merge: true },
+  );
+});
 
 // ── onSessionWrite ────────────────────────────────────────────
 

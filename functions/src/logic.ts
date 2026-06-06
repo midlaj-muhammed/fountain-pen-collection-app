@@ -88,3 +88,48 @@ export function planUserDataDeletion(uid: string): DeletionPlan {
     ],
   };
 }
+
+/**
+ * The settings block seeded into users/{uid} on first auth. Kept
+ * in lockstep with the client-side default in
+ * `src/app/providers/AuthProvider.tsx`.
+ */
+export const defaultUserSettings = {
+  theme: 'system' as const,
+  fontSize: 'md' as const,
+  reminderEnabled: false,
+  reminderHour: 20,
+  reorderAlertEnabled: true,
+};
+
+export type UserSeedInput = {
+  displayName?: string | null;
+  email?: string | null;
+  photoURL?: string | null;
+  emailVerified?: boolean;
+};
+
+/**
+ * Build the user-doc payload that the onUserCreated trigger
+ * writes. Pure function (the `serverTimestamps` are passed in
+ * by the caller so this stays unit-testable without a live
+ * Firestore). The shape mirrors the client `User` domain type
+ * minus the server-side timestamps the wrapper injects.
+ */
+export function defaultUserDocPayload(u: UserSeedInput): {
+  displayName: string;
+  email: string;
+  photoURL: string | null;
+  emailVerified: boolean;
+  plan: 'free';
+  settings: typeof defaultUserSettings;
+} {
+  return {
+    displayName: u.displayName ?? '',
+    email: u.email ?? '',
+    photoURL: u.photoURL ?? null,
+    emailVerified: !!u.emailVerified,
+    plan: 'free',
+    settings: defaultUserSettings,
+  };
+}
