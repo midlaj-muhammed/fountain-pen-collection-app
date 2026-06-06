@@ -1,6 +1,7 @@
 /* eslint-disable react-native/no-raw-text, react-native/no-color-literals */
 import { useMemo, useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { z } from 'zod';
 
 import { ButtonS } from '@/design/components/ButtonS/ButtonS';

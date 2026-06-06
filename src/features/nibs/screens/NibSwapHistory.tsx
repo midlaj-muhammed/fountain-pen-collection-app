@@ -1,5 +1,6 @@
 /* eslint-disable react-native/no-raw-text, react-native/no-color-literals */
-import { SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ButtonS } from '@/design/components/ButtonS/ButtonS';
 import { EmptyState } from '@/design/components/EmptyState/EmptyState';

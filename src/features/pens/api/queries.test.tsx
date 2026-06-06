@@ -4,6 +4,7 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useState } from 'react';
 
 import { AuthProvider, ThemeProvider } from '@/app/providers';
+import { upsertPen } from '@/features/pens/api/pens';
 import {
   useCreatePen,
   useDeletePen,
@@ -11,7 +12,6 @@ import {
   usePens,
   useUpdatePen,
 } from '@/features/pens/api/queries';
-import { upsertPen } from '@/features/pens/api/pens';
 
 const TEST_UID = 'alice-uid';
 

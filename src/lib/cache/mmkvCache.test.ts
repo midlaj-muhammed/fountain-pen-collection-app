@@ -1,47 +1,53 @@
 /**
- * Tests for the MMKV cold-start mirror. Pure serialisation logic
- * against the Jest MMKV mock (a Map-backed store).
+ * Tests for the cold-start mirror. Pure serialisation logic against
+ * the AsyncStorage mock (a Map-backed store).
  */
-import { MMKV } from 'react-native-mmkv';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { clearAllCache, loadCache, saveCache } from './mmkvCache';
+
+const mockedAsyncStorage = AsyncStorage as unknown as {
+  __resetStore: () => void;
+  getItem: jest.Mock;
+  setItem: jest.Mock;
+};
 
 describe('mmkvCache', () => {
   beforeEach(() => {
     // Wipe the in-memory mock between tests.
-    new MMKV().clearAll();
+    mockedAsyncStorage.__resetStore();
   });
 
-  it('saveCache then loadCache round-trips a value', () => {
-    saveCache('pens', [{ id: 'p1', brand: 'Pilot' }]);
-    expect(loadCache<{ id: string; brand: string }[]>('pens')).toEqual([
+  it('saveCache then loadCache round-trips a value', async () => {
+    await saveCache('pens', [{ id: 'p1', brand: 'Pilot' }]);
+    expect(await loadCache<{ id: string; brand: string }[]>('pens')).toEqual([
       { id: 'p1', brand: 'Pilot' },
     ]);
   });
 
-  it('loadCache returns null when the key is missing', () => {
-    expect(loadCache('inks')).toBeNull();
+  it('loadCache returns null when the key is missing', async () => {
+    expect(await loadCache('inks')).toBeNull();
   });
 
-  it('saveCache overwrites a previous value', () => {
-    saveCache('sessions', [{ id: 's1' }]);
-    saveCache('sessions', [{ id: 's2' }]);
-    expect(loadCache<{ id: string }[]>('sessions')).toEqual([{ id: 's2' }]);
+  it('saveCache overwrites a previous value', async () => {
+    await saveCache('sessions', [{ id: 's1' }]);
+    await saveCache('sessions', [{ id: 's2' }]);
+    expect(await loadCache<{ id: string }[]>('sessions')).toEqual([{ id: 's2' }]);
   });
 
-  it('clearAllCache wipes every key', () => {
-    saveCache('pens', [1]);
-    saveCache('inks', [2]);
-    clearAllCache();
-    expect(loadCache('pens')).toBeNull();
-    expect(loadCache('inks')).toBeNull();
+  it('clearAllCache wipes every key', async () => {
+    await saveCache('pens', [1]);
+    await saveCache('inks', [2]);
+    await clearAllCache();
+    expect(await loadCache('pens')).toBeNull();
+    expect(await loadCache('inks')).toBeNull();
   });
 
-  it('rejects non-serialisable values by returning null on load', () => {
-    // Hand-craft a poisoned entry: undefined is not valid JSON, so the
-    // load should fail and the caller falls back to Firestore.
-    const mmkv = new MMKV();
-    mmkv.set('broken', 'not-json{');
-    expect(loadCache('broken')).toBeNull();
+  it('rejects non-serialisable values by returning null on load', async () => {
+    // Hand-craft a poisoned entry: invalid JSON, so the load should
+    // fail and the caller falls back to Firestore.
+    const fullKey = 'mypen.cache.v1:cache:broken';
+    await mockedAsyncStorage.setItem(fullKey, 'not-json{');
+    expect(await loadCache('broken')).toBeNull();
   });
 });

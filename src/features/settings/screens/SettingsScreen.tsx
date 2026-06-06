@@ -1,7 +1,10 @@
 /* eslint-disable react-native/no-raw-text, react-native/no-color-literals */
+import Constants from 'expo-constants';
 import { useState } from 'react';
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useTheme } from '@/app/providers/ThemeProvider';
 import { ButtonS } from '@/design/components/ButtonS/ButtonS';
 import { Chip } from '@/design/components/Chip/Chip';
 import { Modal } from '@/design/components/Modal/Modal';
@@ -38,6 +41,22 @@ const FONT_SIZES: { value: UserSettings['fontSize']; label: string }[] = [
 
 const HOURS: number[] = Array.from({ length: 24 }, (_, h) => h);
 
+// App version pulled from app.json via expo-constants. Falls back to
+// '0.0.0' / '0' in unit tests where the runtime native module is
+// stubbed and returns null.
+const appVersion: string =
+  (Constants.expoConfig?.version as string | undefined) ?? '0.0.0';
+const appBuild: string =
+  // expoConfig doesn't carry Android versionCode / iOS buildNumber
+  // directly, but expo-constants exposes platform-specific config.
+  String(
+    (Constants as unknown as { expoConfig?: { android?: { versionCode?: number }; ios?: { buildNumber?: string } } })
+      .expoConfig?.android?.versionCode ??
+      (Constants as unknown as { expoConfig?: { ios?: { buildNumber?: string } } })
+        .expoConfig?.ios?.buildNumber ??
+      '0',
+  );
+
 /**
  * Settings screen. Lets the user adjust theme, font size, daily
  * reminder (with hour picker), reorder alerts, sign out, and open
@@ -54,6 +73,7 @@ export function SettingsScreen({
 }: SettingsScreenProps) {
   const { data: user, isLoading } = useUser(uid);
   const updateUser = useUpdateUser(uid);
+  const { mode: themeMode, setMode: setThemeMode } = useTheme();
   const [hourPickerOpen, setHourPickerOpen] = useState(false);
 
   if (isLoading || !user) {
@@ -92,9 +112,22 @@ export function SettingsScreen({
               label="Theme"
               chips={THEMES.map((t) => ({
                 label: t.label,
-                active: settings.theme === t.value,
-                onPress: () => patch({ theme: t.value }),
+                // Active state comes from the live theme hook (which
+                // reflects MMKV + OS), not just the Firestore doc —
+                // otherwise the chip won't reflect the change until
+                // the query re-fetches.
+                active: themeMode === t.value,
+                onPress: () => {
+                  setThemeMode(t.value);
+                  // Mirror to Firestore for cross-device sync.
+                  // Best-effort; the local cache is the truth that
+                  // matters for this device.
+                  patch({ theme: t.value }).catch(() => undefined);
+                },
               }))}
+              {...(themeMode === 'system'
+                ? { hint: 'Following your device’s appearance setting.' }
+                : {})}
             />
             <ChipRow
               label="Font size"
@@ -152,6 +185,52 @@ export function SettingsScreen({
                 Delete account
               </ButtonS>
             ) : null}
+          </Stack>
+
+          <Stack gap="sm">
+            <SectionTitle>About</SectionTitle>
+            <View style={styles.aboutCard}>
+              <Stack gap="xs">
+                <Text variant="body" weight="600">
+                  MyPen
+                </Text>
+                <Text variant="small" color="textMuted">
+                  Version {appVersion} ({appBuild})
+                </Text>
+                <Text variant="caption" color="textMuted">
+                  A field journal for fountain pen enthusiasts — track every
+                  pen, ink, and writing session in one place.
+                </Text>
+              </Stack>
+            </View>
+            <Pressable
+              style={styles.aboutRow}
+              onPress={() => {
+                /* No-op: opens OSS licenses in a future update. */
+              }}
+              testID={`${testID}-licenses`}
+            >
+              <Text variant="body" weight="600">
+                Open-source licenses
+              </Text>
+              <Text variant="small" color="textMuted">
+                Tap to view
+              </Text>
+            </Pressable>
+            <Pressable
+              style={styles.aboutRow}
+              onPress={() => {
+                /* No-op: opens privacy policy in a future update. */
+              }}
+              testID={`${testID}-privacy`}
+            >
+              <Text variant="body" weight="600">
+                Privacy policy
+              </Text>
+              <Text variant="small" color="textMuted">
+                Tap to view
+              </Text>
+            </Pressable>
           </Stack>
         </Stack>
       </ScrollView>
@@ -216,9 +295,11 @@ function Row({
 function ChipRow({
   label,
   chips,
+  hint,
 }: {
   label: string;
   chips: { label: string; active: boolean; onPress: () => void }[];
+  hint?: string;
 }) {
   return (
     <Stack gap="xs">
@@ -230,6 +311,11 @@ function ChipRow({
           <Chip key={c.label} label={c.label} active={c.active} onPress={c.onPress} />
         ))}
       </View>
+      {hint ? (
+        <Text variant="caption" color="textMuted">
+          {hint}
+        </Text>
+      ) : null}
     </Stack>
   );
 }
@@ -281,6 +367,20 @@ function SectionTitle({ children }: { children: string }) {
 }
 
 const styles = StyleSheet.create({
+  aboutCard: {
+    backgroundColor: colors.bgElevated,
+    borderRadius: radius.md,
+    padding: space.md,
+  },
+  aboutRow: {
+    alignItems: 'center',
+    backgroundColor: colors.bgElevated,
+    borderRadius: radius.md,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+  },
   body: {
     padding: space.lg,
   },

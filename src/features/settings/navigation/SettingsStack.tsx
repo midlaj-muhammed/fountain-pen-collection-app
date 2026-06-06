@@ -21,10 +21,10 @@ export function SettingsStack() {
 
   return (
     <Stack.Navigator
-      initialRouteName="Settings"
+      initialRouteName="SettingsHome"
       screenOptions={{ headerShown: false }}
     >
-      <Stack.Screen name="Settings">
+      <Stack.Screen name="SettingsHome">
         {({ navigation }) => (
           <SettingsScreen
             uid={uid}
