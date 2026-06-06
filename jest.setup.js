@@ -7,19 +7,35 @@ require('react-native-reanimated/mock');
 // Silence the warning: Animated: `useNativeDriver` is not supported
 jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
 
-// MMKV is a native module — mock it for tests
-jest.mock('react-native-mmkv', () => {
+// AsyncStorage is a native module — mock it for tests with a
+// Map-backed store. Previously we mocked react-native-mmkv here; the
+// cold-start cache now uses AsyncStorage instead (see mmkvCache.ts
+// for the rationale).
+jest.mock('@react-native-async-storage/async-storage', () => {
   const store = new Map();
+  const api = {
+    setItem: jest.fn(async (key, value) => {
+      store.set(key, value);
+    }),
+    getItem: jest.fn(async (key) => {
+      return store.has(key) ? store.get(key) : null;
+    }),
+    removeItem: jest.fn(async (key) => {
+      store.delete(key);
+    }),
+    multiRemove: jest.fn(async (keys) => {
+      for (const k of keys) store.delete(k);
+    }),
+    getAllKeys: jest.fn(async () => Array.from(store.keys())),
+    clear: jest.fn(async () => {
+      store.clear();
+    }),
+  };
+  // Test-only escape hatch.
+  api.__resetStore = () => store.clear();
   return {
-    MMKV: jest.fn().mockImplementation(() => ({
-      set: jest.fn((key, value) => store.set(key, value)),
-      getString: jest.fn((key) => store.get(key) ?? undefined),
-      getNumber: jest.fn((key) => store.get(key) ?? undefined),
-      getBoolean: jest.fn((key) => store.get(key) ?? undefined),
-      delete: jest.fn((key) => store.delete(key)),
-      clearAll: jest.fn(() => store.clear()),
-      contains: jest.fn((key) => store.has(key)),
-    })),
+    __esModule: true,
+    default: api,
   };
 });
 
@@ -98,6 +114,17 @@ jest.mock('firebase/auth', () => {
   };
 });
 
+// `@firebase/auth` (the internal, platform-conditional package) is
+// what client.ts uses for `initializeAuth` + `getReactNativePersistence`
+// so React Native gets the RN-platform class. In production Metro
+// resolves its `react-native` field to the right build; in tests we
+// only need stubs because the real auth flow is exercised via
+// `firebase/auth` (mocked above).
+jest.mock('@firebase/auth', () => ({
+  initializeAuth: jest.fn((_app, _deps) => mockAuthState),
+  getReactNativePersistence: jest.fn((_storage) => ({ type: 'LOCAL' })),
+}));
+
 jest.mock('firebase/firestore', () => {
   const mockCollections = new Map();
   const mockDocPaths = new Map();
@@ -116,6 +143,12 @@ jest.mock('firebase/firestore', () => {
   };
   const api = {
     getFirestore: jest.fn(() => ({ _db: true })),
+    // The v9+ cache API. The real SDK's `cache` field on
+    // FirestoreSettings sets up persistentLocalCache; the mock just
+    // returns a marker object so calls don't throw at import time.
+    initializeFirestore: jest.fn((_app, _settings) => ({ _db: true })),
+    persistentLocalCache: jest.fn(() => ({ _cache: 'persistentLocal' })),
+    persistentMultipleTabManager: jest.fn(() => ({ _tabManager: 'multi' })),
     collection: jest.fn((_db, ...segments) => makeCollection(segments)),
     doc: jest.fn((...args) => {
       // Support both doc(db, ...segments) and doc(collectionRef, id)

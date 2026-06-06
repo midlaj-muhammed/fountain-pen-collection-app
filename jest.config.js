@@ -5,9 +5,14 @@ module.exports = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    // pnpm hoists @firebase/auth under a hashed path; redirect it to
+    // the actual install so jest (and the TS paths mapping) can find
+    // it. We only use initializeAuth + getReactNativePersistence in
+    // production; the test mock in jest.setup.js provides safe stubs.
+    '^@firebase/auth$': '<rootDir>/node_modules/.pnpm/@firebase+auth@1.7.9_@firebase+app@0.10.13/node_modules/@firebase/auth/dist/rn/index.js',
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(?:.pnpm/)?((jest-)?react-native|@react-native(?:-community|-js-polyfills)?|expo(?:nent|-.*)?|@expo(?:nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|react-native-mmkv|firebase|@firebase/.*|@react-native-firebase/.*))',
+    'node_modules/(?!(?:.pnpm/)?((jest-)?react-native|@react-native(?:-community|-js-polyfills)?|expo(?:nent|-.*)?|@expo(?:nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@react-native-async-storage/async-storage|firebase|@firebase/.*|@react-native-firebase/.*))',
   ],
   testPathIgnorePatterns: ['/node_modules/', '/android/', '/ios/', '/e2e/'],
   collectCoverageFrom: [
