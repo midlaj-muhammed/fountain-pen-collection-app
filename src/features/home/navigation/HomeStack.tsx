@@ -49,6 +49,8 @@ export function HomeStack() {
               onOpenInk={(inkId) => navigation.navigate('InkDetail', { inkId })}
               onSeeAllPens={() => navigation.navigate('PenList')}
               onSeeAllInks={() => navigation.navigate('InkList')}
+              onAddPen={() => navigation.navigate('PenForm', { penId: undefined })}
+              onAddInk={() => navigation.navigate('InkForm', { inkId: undefined })}
               testID="home"
             />
             <QuickLog

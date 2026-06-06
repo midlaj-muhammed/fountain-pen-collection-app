@@ -74,6 +74,8 @@ describe('HomeScreen', () => {
         onOpenInk={() => {}}
         onSeeAllPens={() => {}}
         onSeeAllInks={() => {}}
+        onAddPen={() => {}}
+        onAddInk={() => {}}
         testID="home"
       />,
     );
@@ -91,6 +93,8 @@ describe('HomeScreen', () => {
         onOpenInk={() => {}}
         onSeeAllPens={() => {}}
         onSeeAllInks={() => {}}
+        onAddPen={() => {}}
+        onAddInk={() => {}}
         testID="home"
       />,
     );
@@ -108,6 +112,8 @@ describe('HomeScreen', () => {
         onOpenInk={() => {}}
         onSeeAllPens={() => {}}
         onSeeAllInks={() => {}}
+        onAddPen={() => {}}
+        onAddInk={() => {}}
         testID="home"
       />,
     );
@@ -128,6 +134,8 @@ describe('HomeScreen', () => {
         onOpenInk={() => {}}
         onSeeAllPens={() => {}}
         onSeeAllInks={() => {}}
+        onAddPen={() => {}}
+        onAddInk={() => {}}
         testID="home"
       />,
     );
@@ -147,6 +155,8 @@ describe('HomeScreen', () => {
         onOpenInk={() => {}}
         onSeeAllPens={() => {}}
         onSeeAllInks={() => {}}
+        onAddPen={() => {}}
+        onAddInk={() => {}}
         testID="home"
       />,
     );
@@ -166,6 +176,8 @@ describe('HomeScreen', () => {
         onOpenInk={() => {}}
         onSeeAllPens={() => {}}
         onSeeAllInks={() => {}}
+        onAddPen={() => {}}
+        onAddInk={() => {}}
         testID="home"
       />,
     );
@@ -190,6 +202,8 @@ describe('HomeScreen', () => {
         onOpenInk={() => {}}
         onSeeAllPens={() => {}}
         onSeeAllInks={() => {}}
+        onAddPen={() => {}}
+        onAddInk={() => {}}
         testID="home"
       />,
     );
