@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { z } from 'zod';
 
 import { ButtonS } from '@/design/components/ButtonS/ButtonS';
@@ -14,7 +15,7 @@ import { space } from '@/design/tokens/spacing';
 const emailSchema = z.string().email('Enter a valid email address');
 
 export type ForgotPasswordScreenProps = {
-  onSubmit: (email: string) => void;
+  onSubmit: (email: string) => Promise<void> | void;
   onBack: () => void;
   testID?: string;
   errorMessage?: string;
@@ -32,7 +33,7 @@ export function ForgotPasswordScreen({
   const [error, setError] = useState<string | undefined>(undefined);
   const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setError(undefined);
     setSubmitting(true);
     const parsed = emailSchema.safeParse(email);
@@ -41,7 +42,16 @@ export function ForgotPasswordScreen({
       setSubmitting(false);
       return;
     }
-    onSubmit(parsed.data);
+    // onSubmit may throw (errors surfaced via Alert by the AuthStack).
+    // Always clear submitting so the button doesn't stay disabled if
+    // the call rejects.
+    try {
+      await onSubmit(parsed.data);
+    } catch {
+      // Swallow — the caller already showed an Alert.
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (

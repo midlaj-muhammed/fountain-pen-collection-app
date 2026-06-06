@@ -1,5 +1,6 @@
 /* eslint-disable react-native/no-raw-text */
-import { SafeAreaView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ButtonS } from '@/design/components/ButtonS/ButtonS';
 import { Stack } from '@/design/primitives/Stack';

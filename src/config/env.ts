@@ -43,5 +43,16 @@ export const env = {
   // src/lib/firebase/client.ts). Defaults off in production.
   EXPO_PUBLIC_USE_FIREBASE_EMULATOR: read('EXPO_PUBLIC_USE_FIREBASE_EMULATOR', ''),
 
+  // Web (type-3) OAuth client id from google-services.json / GoogleService-
+  // Info.plist. Required by @react-native-google-signin/google-signin so the
+  // returned idToken can be exchanged for a Firebase credential. The dev
+  // placeholder mirrors the value in google-services.json so the app boots
+  // without EAS; production sets it via `eas env:create`.
+  // See docs/google-signin-p4.md.
+  EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: read(
+    'EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID',
+    '913057838875-123hqo7cgtef4vel22v6r9qrc879v5jb.apps.googleusercontent.com',
+  ),
+
   ENV: isTest ? 'test' : (process.env.APP_VARIANT ?? 'development'),
 } as const;

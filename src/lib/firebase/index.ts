@@ -9,6 +9,7 @@ export {
   signInWithEmail,
   signUpWithEmail,
   signInWithGoogle,
+  sendPasswordResetEmail,
   signOut,
   onAuthChanged,
 } from './auth';
@@ -21,3 +22,8 @@ export {
   avatarPath,
 } from './storage';
 export { getFunctionsInstance } from './functions';
+export {
+  createUser,
+  getUser,
+  type UserInput,
+} from '@/features/profile/api/users';

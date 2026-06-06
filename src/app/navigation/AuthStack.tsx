@@ -1,4 +1,5 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Alert } from 'react-native';
 
 import {
   ForgotPasswordScreen,
@@ -6,10 +7,26 @@ import {
   SignUpScreen,
   WelcomeScreen,
 } from '@/features/auth/screens';
+import {
+  sendPasswordResetEmail,
+  signInWithEmail,
+  signUpWithEmail,
+} from '@/lib/firebase';
 
 import type { AuthStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
+
+/**
+ * Centralised error-toast for the auth flows. Kept here (not in
+ * each screen) so the AuthStack owns the "what does a failed call
+ * look like" UX in one place. The screens render the per-field
+ * validation errors themselves.
+ */
+function showAuthError(prefix: string, err: unknown): void {
+  const message = err instanceof Error ? err.message : 'Unexpected error';
+  Alert.alert(prefix, message);
+}
 
 export function AuthStack() {
   return (
@@ -28,13 +45,22 @@ export function AuthStack() {
       <Stack.Screen name="SignIn">
         {({ navigation }) => (
           <SignInScreen
-            onSubmit={() => {
-              /* onAuthStateChanged will swap the root navigator */
+            onSubmit={async ({ email, password }) => {
+              // onAuthStateChanged (in AuthProvider) swaps the root
+              // navigator on success, so we don't navigate here.
+              try {
+                await signInWithEmail(email, password);
+              } catch (err) {
+                showAuthError('Sign in failed', err);
+                // Re-throw so the screen can reset its isSubmitting flag.
+                throw err;
+              }
             }}
             onForgotPassword={() => navigation.navigate('ForgotPassword')}
             onSignUp={() => navigation.navigate('SignUp')}
             onSignInWithGoogle={() => {
-              /* onAuthStateChanged will swap the root navigator */
+              /* Screen calls useAuthForm().signInWithGoogle internally;
+                 onAuthStateChanged will swap the root navigator. */
             }}
           />
         )}
@@ -42,18 +68,37 @@ export function AuthStack() {
       <Stack.Screen name="SignUp">
         {({ navigation }) => (
           <SignUpScreen
-            onSubmit={() => {
-              /* onAuthStateChanged will swap the root navigator */
+            onSubmit={async ({ email, password }) => {
+              try {
+                await signUpWithEmail(email, password);
+              } catch (err) {
+                showAuthError('Sign up failed', err);
+                throw err;
+              }
             }}
             onSignIn={() => navigation.navigate('SignIn')}
+            onSignUpWithGoogle={() => {
+              /* Screen calls useAuthForm().signInWithGoogle internally;
+                 onAuthStateChanged will swap the root navigator. */
+            }}
           />
         )}
       </Stack.Screen>
       <Stack.Screen name="ForgotPassword">
         {({ navigation }) => (
           <ForgotPasswordScreen
-            onSubmit={() => {
-              /* handled by AuthProvider; just show sent message */
+            onSubmit={async (email) => {
+              try {
+                await sendPasswordResetEmail(email);
+                Alert.alert(
+                  'Check your inbox',
+                  `We sent a password-reset link to ${email}.`,
+                );
+                navigation.goBack();
+              } catch (err) {
+                showAuthError('Could not send reset email', err);
+                throw err;
+              }
             }}
             onBack={() => navigation.goBack()}
           />
